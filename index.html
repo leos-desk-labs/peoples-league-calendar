@@ -384,18 +384,30 @@
 
       // Load all profile pics from Supabase on mount
       useEffect(() => {
-        loadAllProfilePics();
+        // Delay loading to ensure supabase is ready
+        const timer = setTimeout(() => {
+          loadAllProfilePics();
+        }, 500);
+        return () => clearTimeout(timer);
       }, []);
 
       const loadAllProfilePics = async () => {
         try {
+          // Check if supabase storage is available
+          if (!supabase?.storage) {
+            console.warn('Supabase storage not available');
+            setLoading(false);
+            return;
+          }
+
           // List all files in the profile-pics bucket
           const { data: files, error } = await supabase.storage
             .from('profile-pics')
             .list('', { limit: 100 });
 
           if (error) {
-            console.warn('Error loading profile pics:', error);
+            // Don't break the app if storage isn't set up yet
+            console.warn('Profile pics storage not available:', error.message);
             setLoading(false);
             return;
           }
@@ -403,7 +415,7 @@
           // Get public URLs for each file
           const pics = {};
           for (const file of files || []) {
-            if (file.name) {
+            if (file.name && !file.name.startsWith('.')) {
               const { data } = supabase.storage
                 .from('profile-pics')
                 .getPublicUrl(file.name);
