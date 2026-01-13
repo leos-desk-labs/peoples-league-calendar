@@ -826,7 +826,7 @@
       return [storedValue, setStoredValue];
     }
 
-    // Activity Log - records all user actions
+    // Activity Log - records all user actions (Supabase-backed)
     const ActivityLogContext = createContext(null);
 
     function useActivityLog() {
@@ -834,138 +834,299 @@
     }
 
     function ActivityLogProvider({ children }) {
-      const [logs, setLogs] = useLocalStorage('pl-activity-log', []);
+      const [logs, setLogs] = useState([]);
+      const [loading, setLoading] = useState(true);
 
-      const addLog = (action, details, userEmail) => {
-        const entry = {
-          id: crypto.randomUUID(),
+      // Fetch logs from Supabase on mount
+      useEffect(() => {
+        const fetchLogs = async () => {
+          const { data, error } = await supabase
+            .from('activity_log')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(500);
+          if (!error && data) {
+            setLogs(data.map(log => ({
+              id: log.id,
+              action: log.action,
+              details: log.details,
+              user: log.user_name,
+              timestamp: log.created_at,
+            })));
+          }
+          setLoading(false);
+        };
+        fetchLogs();
+
+        // Subscribe to realtime changes
+        const channel = supabase
+          .channel('activity_log_changes')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activity_log' }, (payload) => {
+            const newLog = {
+              id: payload.new.id,
+              action: payload.new.action,
+              details: payload.new.details,
+              user: payload.new.user_name,
+              timestamp: payload.new.created_at,
+            };
+            setLogs(prev => [newLog, ...prev].slice(0, 500));
+          })
+          .subscribe();
+
+        return () => { supabase.removeChannel(channel); };
+      }, []);
+
+      const addLog = async (action, details, userName) => {
+        await supabase.from('activity_log').insert({
           action,
           details,
-          user: userEmail || 'Unknown',
-          timestamp: new Date().toISOString(),
-        };
-        setLogs(prev => [entry, ...prev].slice(0, 500)); // Keep last 500 entries
+          user_name: userName || 'Unknown',
+        });
       };
 
-      const clearLogs = () => setLogs([]);
+      const clearLogs = async () => {
+        await supabase.from('activity_log').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        setLogs([]);
+      };
 
       return (
-        <ActivityLogContext.Provider value={{ logs, addLog, clearLogs }}>
+        <ActivityLogContext.Provider value={{ logs, addLog, clearLogs, loading }}>
           {children}
         </ActivityLogContext.Provider>
       );
     }
 
+    // Content Store - Supabase-backed with realtime sync
     function useContentStore() {
       const { user } = useAuth();
-      const [data, setData] = useLocalStorage('pl-content-calendar', initialData);
+      const [content, setContent] = useState([]);
+      const [ideas, setIdeas] = useState([]);
+      const [deletedContent, setDeletedContent] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const team = ['Clay']; // Static team for now
 
-      const addContent = (content) => {
-        const newContent = {
-          ...content,
-          id: crypto.randomUUID(),
-          createdBy: user?.email || 'Unknown',
-          createdAt: new Date().toISOString(),
-          updatedBy: user?.email || 'Unknown',
-          updatedAt: new Date().toISOString(),
+      // Helper to convert DB row to app format
+      const dbToContent = (row) => ({
+        id: row.id,
+        title: row.title,
+        description: row.description || '',
+        type: row.type,
+        stage: row.stage,
+        shootDate: row.shoot_date || '',
+        releaseDate: row.release_date || '',
+        assignee: row.assignee || '',
+        tags: row.tags || [],
+        notes: row.notes || '',
+        createdBy: row.created_by,
+        createdAt: row.created_at,
+        updatedBy: row.updated_by,
+        updatedAt: row.updated_at,
+      });
+
+      const dbToIdea = (row) => ({
+        id: row.id,
+        title: row.title,
+        description: row.description || '',
+        type: row.type,
+        tags: row.tags || [],
+        createdBy: row.created_by,
+        createdAt: row.created_at,
+      });
+
+      const dbToDeleted = (row) => ({
+        ...dbToContent(row),
+        deletedBy: row.deleted_by,
+        deletedAt: row.deleted_at,
+      });
+
+      // Fetch all data on mount
+      useEffect(() => {
+        const fetchAll = async () => {
+          const [contentRes, ideasRes, deletedRes] = await Promise.all([
+            supabase.from('content').select('*').order('created_at', { ascending: false }),
+            supabase.from('ideas').select('*').order('created_at', { ascending: false }),
+            supabase.from('deleted_content').select('*').order('deleted_at', { ascending: false }),
+          ]);
+          if (contentRes.data) setContent(contentRes.data.map(dbToContent));
+          if (ideasRes.data) setIdeas(ideasRes.data.map(dbToIdea));
+          if (deletedRes.data) setDeletedContent(deletedRes.data.map(dbToDeleted));
+          setLoading(false);
         };
-        setData((prev) => ({ ...prev, content: [...prev.content, newContent] }));
-        return newContent;
+        fetchAll();
+
+        // Realtime subscriptions
+        const contentChannel = supabase
+          .channel('content_changes')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'content' }, (payload) => {
+            if (payload.eventType === 'INSERT') {
+              setContent(prev => [dbToContent(payload.new), ...prev]);
+            } else if (payload.eventType === 'UPDATE') {
+              setContent(prev => prev.map(item => item.id === payload.new.id ? dbToContent(payload.new) : item));
+            } else if (payload.eventType === 'DELETE') {
+              setContent(prev => prev.filter(item => item.id !== payload.old.id));
+            }
+          })
+          .subscribe();
+
+        const ideasChannel = supabase
+          .channel('ideas_changes')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'ideas' }, (payload) => {
+            if (payload.eventType === 'INSERT') {
+              setIdeas(prev => [dbToIdea(payload.new), ...prev]);
+            } else if (payload.eventType === 'DELETE') {
+              setIdeas(prev => prev.filter(item => item.id !== payload.old.id));
+            }
+          })
+          .subscribe();
+
+        const deletedChannel = supabase
+          .channel('deleted_changes')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'deleted_content' }, (payload) => {
+            if (payload.eventType === 'INSERT') {
+              setDeletedContent(prev => [dbToDeleted(payload.new), ...prev]);
+            } else if (payload.eventType === 'DELETE') {
+              setDeletedContent(prev => prev.filter(item => item.id !== payload.old.id));
+            }
+          })
+          .subscribe();
+
+        return () => {
+          supabase.removeChannel(contentChannel);
+          supabase.removeChannel(ideasChannel);
+          supabase.removeChannel(deletedChannel);
+        };
+      }, []);
+
+      const addContent = async (contentData) => {
+        const newContent = {
+          title: contentData.title,
+          description: contentData.description || '',
+          type: contentData.type,
+          stage: contentData.stage,
+          shoot_date: contentData.shootDate || null,
+          release_date: contentData.releaseDate || null,
+          assignee: contentData.assignee || '',
+          tags: contentData.tags || [],
+          notes: contentData.notes || '',
+          created_by: user?.email || 'Unknown',
+          updated_by: user?.email || 'Unknown',
+        };
+        const { data, error } = await supabase.from('content').insert(newContent).select().single();
+        if (data) return dbToContent(data);
+        return null;
       };
 
-      const updateContent = (id, updates) => {
-        setData((prev) => ({
-          ...prev,
-          content: prev.content.map((item) => item.id === id ? {
-            ...item,
-            ...updates,
-            updatedBy: user?.email || 'Unknown',
-            updatedAt: new Date().toISOString(),
-          } : item),
-        }));
+      const updateContent = async (id, updates) => {
+        const dbUpdates = {
+          ...(updates.title !== undefined && { title: updates.title }),
+          ...(updates.description !== undefined && { description: updates.description }),
+          ...(updates.type !== undefined && { type: updates.type }),
+          ...(updates.stage !== undefined && { stage: updates.stage }),
+          ...(updates.shootDate !== undefined && { shoot_date: updates.shootDate || null }),
+          ...(updates.releaseDate !== undefined && { release_date: updates.releaseDate || null }),
+          ...(updates.assignee !== undefined && { assignee: updates.assignee }),
+          ...(updates.tags !== undefined && { tags: updates.tags }),
+          ...(updates.notes !== undefined && { notes: updates.notes }),
+          updated_by: user?.email || 'Unknown',
+          updated_at: new Date().toISOString(),
+        };
+        await supabase.from('content').update(dbUpdates).eq('id', id);
       };
 
-      const deleteContent = (id) => {
-        const itemToDelete = data.content.find((item) => item.id === id);
+      const deleteContent = async (id) => {
+        const itemToDelete = content.find((item) => item.id === id);
         if (!itemToDelete) return;
 
-        const deletedItem = {
-          ...itemToDelete,
-          deletedBy: user?.email || 'Unknown',
-          deletedAt: new Date().toISOString(),
-        };
+        // Insert into deleted_content
+        await supabase.from('deleted_content').insert({
+          id: itemToDelete.id,
+          title: itemToDelete.title,
+          description: itemToDelete.description,
+          type: itemToDelete.type,
+          stage: itemToDelete.stage,
+          shoot_date: itemToDelete.shootDate || null,
+          release_date: itemToDelete.releaseDate || null,
+          assignee: itemToDelete.assignee,
+          tags: itemToDelete.tags,
+          notes: itemToDelete.notes,
+          created_by: itemToDelete.createdBy,
+          created_at: itemToDelete.createdAt,
+          updated_by: itemToDelete.updatedBy,
+          updated_at: itemToDelete.updatedAt,
+          deleted_by: user?.email || 'Unknown',
+        });
 
-        setData((prev) => ({
-          ...prev,
-          content: prev.content.filter((item) => item.id !== id),
-          deletedContent: [...(prev.deletedContent || []), deletedItem],
-        }));
+        // Delete from content
+        await supabase.from('content').delete().eq('id', id);
       };
 
-      const restoreContent = (id) => {
-        const itemToRestore = data.deletedContent?.find((item) => item.id === id);
+      const restoreContent = async (id) => {
+        const itemToRestore = deletedContent.find((item) => item.id === id);
         if (!itemToRestore) return;
 
-        const { deletedBy, deletedAt, ...restoredItem } = itemToRestore;
-        restoredItem.updatedBy = user?.email || 'Unknown';
-        restoredItem.updatedAt = new Date().toISOString();
+        // Insert back into content
+        await supabase.from('content').insert({
+          id: itemToRestore.id,
+          title: itemToRestore.title,
+          description: itemToRestore.description,
+          type: itemToRestore.type,
+          stage: itemToRestore.stage,
+          shoot_date: itemToRestore.shootDate || null,
+          release_date: itemToRestore.releaseDate || null,
+          assignee: itemToRestore.assignee,
+          tags: itemToRestore.tags,
+          notes: itemToRestore.notes,
+          created_by: itemToRestore.createdBy,
+          created_at: itemToRestore.createdAt,
+          updated_by: user?.email || 'Unknown',
+          updated_at: new Date().toISOString(),
+        });
 
-        setData((prev) => ({
-          ...prev,
-          content: [...prev.content, restoredItem],
-          deletedContent: (prev.deletedContent || []).filter((item) => item.id !== id),
-        }));
+        // Delete from deleted_content
+        await supabase.from('deleted_content').delete().eq('id', id);
       };
 
-      const permanentlyDeleteContent = (id) => {
-        setData((prev) => ({
-          ...prev,
-          deletedContent: (prev.deletedContent || []).filter((item) => item.id !== id),
-        }));
+      const permanentlyDeleteContent = async (id) => {
+        await supabase.from('deleted_content').delete().eq('id', id);
       };
 
-      const emptyTrash = () => {
-        setData((prev) => ({ ...prev, deletedContent: [] }));
+      const emptyTrash = async () => {
+        await supabase.from('deleted_content').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        setDeletedContent([]);
       };
 
-      // Auto-purge items older than 30 days from trash
-      const purgeOldDeletedContent = () => {
+      const purgeOldDeletedContent = async () => {
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-        setData((prev) => ({
-          ...prev,
-          deletedContent: (prev.deletedContent || []).filter((item) =>
-            new Date(item.deletedAt) > thirtyDaysAgo
-          ),
-        }));
+        await supabase.from('deleted_content').delete().lt('deleted_at', thirtyDaysAgo.toISOString());
       };
 
-      const moveContent = (id, newStage) => {
-        updateContent(id, { stage: newStage });
+      const moveContent = async (id, newStage) => {
+        await updateContent(id, { stage: newStage });
       };
 
-      const addIdea = (idea) => {
+      const addIdea = async (idea) => {
         const newIdea = {
-          ...idea,
-          id: crypto.randomUUID(),
-          createdBy: user?.email || 'Unknown',
-          createdAt: new Date().toISOString(),
+          title: idea.title,
+          description: idea.description || '',
+          type: idea.type,
+          tags: idea.tags || [],
+          created_by: user?.email || 'Unknown',
         };
-        setData((prev) => ({ ...prev, ideas: [...prev.ideas, newIdea] }));
-        return newIdea;
+        const { data } = await supabase.from('ideas').insert(newIdea).select().single();
+        if (data) return dbToIdea(data);
+        return null;
       };
 
-      const deleteIdea = (id) => {
-        setData((prev) => ({ ...prev, ideas: prev.ideas.filter((item) => item.id !== id) }));
+      const deleteIdea = async (id) => {
+        await supabase.from('ideas').delete().eq('id', id);
       };
 
-      const promoteIdea = (ideaId) => {
-        const idea = data.ideas.find((i) => i.id === ideaId);
+      const promoteIdea = async (ideaId) => {
+        const idea = ideas.find((i) => i.id === ideaId);
         if (!idea) return null;
-        // Set first stage based on content type
         const firstStage = idea.type === 'long-form' ? 'scheduled-shoot' : 'shoot';
-        const newContent = addContent({
+        const newContent = await addContent({
           title: idea.title,
           description: idea.description || '',
           type: idea.type,
@@ -976,26 +1137,26 @@
           tags: idea.tags || [],
           notes: '',
         });
-        deleteIdea(ideaId);
+        await deleteIdea(ideaId);
         return newContent;
       };
 
-      // Undo: move content back to ideas
-      const unpromoteContent = (contentId) => {
-        const item = data.content.find((c) => c.id === contentId);
+      const unpromoteContent = async (contentId) => {
+        const item = content.find((c) => c.id === contentId);
         if (!item) return null;
-
-        const newIdea = addIdea({
+        const newIdea = await addIdea({
           title: item.title,
           description: item.description || '',
           type: item.type,
           tags: item.tags || [],
         });
-        deleteContent(contentId);
+        // Remove from content without moving to trash
+        await supabase.from('content').delete().eq('id', contentId);
         return newIdea;
       };
 
       const exportData = () => {
+        const data = { content, ideas, team, deletedContent };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -1005,11 +1166,20 @@
         URL.revokeObjectURL(url);
       };
 
-      const importData = (jsonData) => {
+      const importData = async (jsonData) => {
         try {
           const parsed = JSON.parse(jsonData);
           if (parsed.content && parsed.ideas) {
-            setData(parsed);
+            // Clear existing and insert new
+            await supabase.from('content').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+            await supabase.from('ideas').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+
+            for (const item of parsed.content) {
+              await addContent(item);
+            }
+            for (const idea of parsed.ideas) {
+              await addIdea(idea);
+            }
             return true;
           }
           return false;
@@ -1019,10 +1189,11 @@
       };
 
       return {
-        content: data.content,
-        ideas: data.ideas,
-        team: data.team,
-        deletedContent: data.deletedContent || [],
+        content,
+        ideas,
+        team,
+        deletedContent,
+        loading,
         addContent,
         updateContent,
         deleteContent,
