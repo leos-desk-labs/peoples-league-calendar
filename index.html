@@ -96,6 +96,10 @@
     .sidebar-nav-label { flex: 1; font-size: 14px; font-weight: 500; }
     .sidebar-nav-count { font-size: 11px; font-weight: 600; background: var(--bg-tertiary); padding: 2px 6px; border-radius: var(--radius-sm); }
     .sidebar-nav-item.active .sidebar-nav-count { background: var(--pl-lime); color: var(--pl-teal); }
+    .sidebar-add { padding: var(--space-md); padding-top: var(--space-sm); }
+    .sidebar-add-btn { display: flex; align-items: center; justify-content: center; gap: var(--space-sm); width: 100%; padding: var(--space-sm) var(--space-md); background: var(--pl-lime); color: var(--pl-teal); font-size: 14px; font-weight: 600; border-radius: var(--radius-md); transition: all var(--transition-fast); }
+    .sidebar-add-btn:hover { background: var(--pl-lime-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(231, 255, 1, 0.3); }
+    .sidebar-add-btn svg { width: 18px; height: 18px; }
     .sidebar-section { padding: var(--space-md); margin-top: auto; border-top: 1px solid var(--border-default); }
     .sidebar-section-title { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-sm); }
     .sidebar-type-item { display: flex; align-items: center; gap: var(--space-sm); font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; }
@@ -1988,7 +1992,6 @@
               <button className={`pipeline-filter long ${activeType === 'long-form' ? 'active' : ''}`} onClick={() => setActiveType('long-form')}>Long-form</button>
               <button className={`pipeline-filter short ${activeType === 'short-form' ? 'active' : ''}`} onClick={() => setActiveType('short-form')}>Short-form</button>
             </div>
-            <Button variant="primary" onClick={onAddClick}><PlusIcon /> Add Content</Button>
           </div>
           <div className="pipeline-columns">
             {stages.map((stage) => (
@@ -2064,7 +2067,6 @@
             </div>
             <div className="month-actions">
               <Button variant="ghost" size="sm" onClick={goToToday}>Today</Button>
-              <Button variant="primary" onClick={onAddClick}><PlusIcon /> Add Content</Button>
             </div>
           </div>
           <div className="month-legend">
@@ -2170,7 +2172,7 @@
       );
     };
 
-    const Sidebar = ({ activeView, onViewChange, contentCounts }) => {
+    const Sidebar = ({ activeView, onViewChange, contentCounts, onAddContent }) => {
       const { user, signOut, isAdmin } = useAuth();
       const navItems = [
         { id: 'pipeline', label: 'Pipeline', icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="3" width="5" height="14" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="7.5" y="6" width="5" height="11" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="13" y="3" width="5" height="14" rx="1" stroke="currentColor" strokeWidth="1.5"/></svg> },
@@ -2208,6 +2210,11 @@
               </button>
             )}
           </nav>
+          <div className="sidebar-add">
+            <button className="sidebar-add-btn" onClick={onAddContent}>
+              <PlusIcon /> Add Content
+            </button>
+          </div>
           <div className="sidebar-section">
             <h3 className="sidebar-section-title">Content Types</h3>
             <div className="sidebar-type-item"><span className="sidebar-type-dot" style={{ background: '#3b82f6' }} /><span>Long-form</span></div>
@@ -2300,6 +2307,27 @@
         }
       }, [activeView, user?.email]);
 
+      // Keyboard shortcut: Press "N" to add new content
+      useEffect(() => {
+        const handleKeyDown = (e) => {
+          // Don't trigger if user is typing in an input or textarea
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+          // Don't trigger if modal is already open
+          if (modalOpen) return;
+          // Don't trigger if modifier keys are held
+          if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+          if (e.key === 'n' || e.key === 'N') {
+            e.preventDefault();
+            setSelectedContent(null);
+            setModalOpen(true);
+          }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+      }, [modalOpen]);
+
       const handleCardClick = (item) => { setSelectedContent(item); setModalOpen(true); };
       const handleAddClick = () => { setSelectedContent(null); setModalOpen(true); };
       const handleSave = (formData) => {
@@ -2338,7 +2366,7 @@
 
       return (
         <div className="app">
-          <Sidebar activeView={activeView} onViewChange={setActiveView} contentCounts={unreadCounts} />
+          <Sidebar activeView={activeView} onViewChange={setActiveView} contentCounts={unreadCounts} onAddContent={handleAddClick} />
           <Header onExport={exportData} onImport={handleImport} />
           <main className="main-content">
             <div className="page-content">{renderView()}</div>
