@@ -388,6 +388,20 @@
     // Session expiry check - 7 days (in milliseconds)
     const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000;
 
+    // Email notification service
+    const sendNotification = async ({ type, recipientEmail, recipientName, contentTitle, contentType, shootDate, releaseDate, assignerName }) => {
+      try {
+        const { data, error } = await supabase.functions.invoke('send-notification', {
+          body: { type, recipientEmail, recipientName, contentTitle, contentType, shootDate, releaseDate, assignerName }
+        });
+        if (error) throw error;
+        return { success: true, data };
+      } catch (error) {
+        console.error('Failed to send notification:', error);
+        return { success: false, error };
+      }
+    };
+
     // Auth Context
     const AuthContext = createContext(null);
 
@@ -2441,10 +2455,35 @@
 
       const handleCardClick = (item) => { setSelectedContent(item); setModalOpen(true); };
       const handleAddClick = () => { setSelectedContent(null); setModalOpen(true); };
-      const handleSave = (formData) => {
-        if (selectedContent?.id) { updateContent(selectedContent.id, formData); }
-        else { addContent(formData); }
+      const handleSave = async (formData) => {
+        const isNew = !selectedContent?.id;
+        const previousAssignee = selectedContent?.assignee;
+        const newAssignee = formData.assignee;
+
+        if (isNew) {
+          addContent(formData);
+        } else {
+          updateContent(selectedContent.id, formData);
+        }
         setModalOpen(false);
+
+        // Send assignment notification if enabled and assignee is set/changed
+        if (formData.sendNotifications && newAssignee) {
+          const assigneeChanged = isNew || (previousAssignee !== newAssignee);
+          if (assigneeChanged) {
+            sendNotification({
+              type: 'assignment',
+              recipientEmail: newAssignee,
+              recipientName: getDisplayName(newAssignee),
+              contentTitle: formData.title,
+              contentType: formData.type,
+              shootDate: formData.shootDate,
+              releaseDate: formData.releaseDate,
+              assignerName: getDisplayName(user?.email),
+            });
+            showToast(`Notification sent to ${getDisplayName(newAssignee)}`);
+          }
+        }
       };
       const handleDelete = (id) => { deleteContent(id); setModalOpen(false); };
       const handleImport = (jsonData) => {
