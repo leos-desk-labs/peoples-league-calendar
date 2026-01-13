@@ -336,31 +336,38 @@
     .admin-trash-meta { font-size: 11px; color: var(--text-muted); }
     .admin-trash-actions { display: flex; gap: var(--space-xs); flex-shrink: 0; }
 
-    /* Help Guide */
+    /* Help Guide - Get Started */
     .help-guide { height: calc(100vh - var(--header-height) - 48px); display: flex; flex-direction: column; }
-    .help-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-lg); }
-    .help-header h2 { font-size: 20px; font-weight: 600; margin-bottom: var(--space-xs); }
-    .help-header p { font-size: 13px; color: var(--text-secondary); }
-    .help-nav { display: flex; gap: var(--space-xs); background: var(--bg-secondary); padding: var(--space-xs); border-radius: var(--radius-md); margin-bottom: var(--space-lg); flex-wrap: wrap; }
-    .help-nav-btn { padding: var(--space-sm) var(--space-md); border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; color: var(--text-secondary); transition: all var(--transition-fast); }
-    .help-nav-btn:hover { color: var(--text-primary); }
-    .help-nav-btn.active { background: var(--bg-tertiary); color: var(--pl-lime); }
+    .help-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-xl); }
+    .help-header h2 { font-size: 24px; font-weight: 600; color: var(--text-primary); }
     .help-content { flex: 1; overflow-y: auto; padding-right: var(--space-sm); }
-    .help-section h3 { font-size: 18px; font-weight: 600; margin-bottom: var(--space-sm); color: var(--text-primary); }
-    .help-section > p { font-size: 14px; color: var(--text-secondary); margin-bottom: var(--space-lg); line-height: 1.6; }
-    .help-card { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-md); }
-    .help-card h4 { font-size: 14px; font-weight: 600; margin-bottom: var(--space-sm); color: var(--text-primary); }
-    .help-card p { font-size: 13px; color: var(--text-secondary); margin-bottom: var(--space-sm); line-height: 1.5; }
-    .help-card ul, .help-card ol { margin: 0; padding-left: var(--space-lg); }
-    .help-card li { font-size: 13px; color: var(--text-secondary); margin-bottom: var(--space-xs); line-height: 1.5; }
-    .help-card li strong { color: var(--text-primary); }
-    .help-stages { list-style: none; padding-left: 0; }
-    .help-stages li { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-xs) 0; }
-    .help-stage-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-    .help-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: var(--space-xs); }
-    .help-role { border-left: 3px solid var(--pl-lime); }
-    .help-role h4 { font-size: 15px; }
-    .help-role > p { font-size: 12px; color: var(--pl-lime); margin-bottom: var(--space-md); font-weight: 500; }
+    .help-section-title { font-size: 12px; font-weight: 700; color: var(--pl-lime); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: var(--space-md); margin-top: var(--space-xl); display: flex; align-items: center; gap: var(--space-sm); }
+    .help-section-title::before { content: ''; width: 4px; height: 16px; background: var(--pl-lime); border-radius: 2px; }
+    .help-content .help-section-title:first-child { margin-top: 0; }
+    .help-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-md); }
+    .help-card { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); padding: var(--space-lg); }
+    .help-card-icon { font-size: 28px; margin-bottom: var(--space-sm); }
+    .help-card h4 { font-size: 16px; font-weight: 600; margin-bottom: var(--space-xs); color: var(--text-primary); }
+    .help-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0; }
+    .help-pipeline-visual { display: flex; align-items: center; gap: var(--space-xs); overflow-x: auto; padding: var(--space-sm) 0; flex-wrap: wrap; }
+    .help-pipeline-stage { display: flex; align-items: center; gap: var(--space-xs); background: var(--bg-secondary); border-radius: var(--radius-md); padding: var(--space-sm) var(--space-md); font-size: 12px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; }
+    .help-pipeline-arrow { color: var(--border-default); font-size: 16px; }
+    .help-stage-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .help-steps { display: flex; flex-direction: column; gap: var(--space-md); }
+    .help-step { display: flex; gap: var(--space-md); align-items: flex-start; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); padding: var(--space-md) var(--space-lg); }
+    .help-step-number { width: 28px; height: 28px; background: var(--pl-lime); color: var(--pl-teal); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+    .help-step-content h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; color: var(--text-primary); }
+    .help-step-content p { font-size: 13px; color: var(--text-secondary); margin: 0; }
+    .help-step-content strong { color: var(--text-primary); }
+    .help-shortcuts { display: flex; gap: var(--space-lg); flex-wrap: wrap; }
+    .help-shortcut { display: flex; align-items: center; gap: var(--space-sm); }
+    .help-shortcut-key { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-sm); padding: var(--space-xs) var(--space-sm); font-size: 13px; font-weight: 600; font-family: monospace; color: var(--text-primary); }
+    .help-shortcut-desc { font-size: 13px; color: var(--text-secondary); }
+    .help-tips-box { background: linear-gradient(135deg, var(--pl-teal) 0%, var(--bg-primary) 100%); border: 1px solid var(--pl-teal-light); border-radius: var(--radius-lg); padding: var(--space-lg); margin-top: var(--space-xl); }
+    .help-tips-box h4 { font-size: 14px; font-weight: 600; margin-bottom: var(--space-md); color: var(--text-primary); }
+    .help-tips-box ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-sm); }
+    .help-tips-box li { font-size: 13px; color: var(--text-secondary); padding-left: var(--space-lg); position: relative; }
+    .help-tips-box li::before { content: '→'; position: absolute; left: 0; color: var(--pl-lime); }
     .help-btn { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md); color: var(--text-secondary); transition: all var(--transition-fast); width: 100%; text-align: left; font-size: 13px; }
     .help-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
   </style>
@@ -1320,261 +1327,105 @@
       );
     };
 
-    // Help Guide Component
+    // Help Guide Component - Get Started Guide
     const HelpGuide = ({ onClose }) => {
-      const [activeSection, setActiveSection] = useState('overview');
-
-      const sections = [
-        { id: 'overview', label: 'Overview' },
-        { id: 'pipeline', label: 'Pipeline View' },
-        { id: 'calendar', label: 'Calendar View' },
-        { id: 'ideas', label: 'Ideas Bank' },
-        { id: 'roles', label: 'By Role' },
-        { id: 'tips', label: 'Quick Tips' },
-      ];
-
       return (
         <div className="help-guide">
           <div className="help-header">
             <div>
-              <h2>How to Use the Content Calendar</h2>
-              <p>Everything you need to know to manage content effectively</p>
+              <Logo size={40} showText={true} />
+              <h2 style={{ marginTop: '12px' }}>Get Started Guide</h2>
             </div>
             <Button variant="ghost" size="sm" onClick={onClose}><CloseIcon /></Button>
           </div>
 
-          <div className="help-nav">
-            {sections.map(section => (
-              <button
-                key={section.id}
-                className={`help-nav-btn ${activeSection === section.id ? 'active' : ''}`}
-                onClick={() => setActiveSection(section.id)}
-              >
-                {section.label}
-              </button>
-            ))}
-          </div>
-
           <div className="help-content">
-            {activeSection === 'overview' && (
-              <div className="help-section">
-                <h3>Welcome to the Peoples League Content Calendar</h3>
-                <p>This platform helps our team coordinate content production across long-form and short-form content. Here's the big picture:</p>
+            {/* Three Views Section */}
+            <div className="help-section-title">Three Views, One Workflow</div>
+            <div className="help-cards-grid">
+              <div className="help-card">
+                <div className="help-card-icon">📋</div>
+                <h4>Pipeline</h4>
+                <p>Your main workspace. Drag cards through stages as content progresses from shoot to publish.</p>
+              </div>
+              <div className="help-card">
+                <div className="help-card-icon">📅</div>
+                <h4>Calendar</h4>
+                <p>See what's shooting and releasing by date. Great for spotting conflicts and planning ahead.</p>
+              </div>
+              <div className="help-card">
+                <div className="help-card-icon">💡</div>
+                <h4>Ideas</h4>
+                <p>Capture ideas before they're ready. Click "Start" to move one into production.</p>
+              </div>
+            </div>
 
-                <div className="help-card">
-                  <h4>Three Main Views</h4>
-                  <ul>
-                    <li><strong>Pipeline</strong> — See all content moving through production stages (like a Kanban board)</li>
-                    <li><strong>Calendar</strong> — See shoot dates and release dates on a monthly calendar</li>
-                    <li><strong>Ideas</strong> — Capture and store content ideas before they enter production</li>
-                  </ul>
-                </div>
+            {/* Pipeline Flow */}
+            <div className="help-section-title">How Content Flows</div>
+            <div className="help-pipeline-visual">
+              <div className="help-pipeline-stage"><span className="help-stage-dot" style={{background: '#3b82f6'}} />Shoot Scheduled</div>
+              <span className="help-pipeline-arrow">→</span>
+              <div className="help-pipeline-stage"><span className="help-stage-dot" style={{background: '#f59e0b'}} />In Production</div>
+              <span className="help-pipeline-arrow">→</span>
+              <div className="help-pipeline-stage"><span className="help-stage-dot" style={{background: '#ec4899'}} />Editing</div>
+              <span className="help-pipeline-arrow">→</span>
+              <div className="help-pipeline-stage"><span className="help-stage-dot" style={{background: '#06b6d4'}} />Review</div>
+              <span className="help-pipeline-arrow">→</span>
+              <div className="help-pipeline-stage"><span className="help-stage-dot" style={{background: '#10b981'}} />Scheduled</div>
+              <span className="help-pipeline-arrow">→</span>
+              <div className="help-pipeline-stage"><span className="help-stage-dot" style={{background: '#e7ff01'}} />Published</div>
+            </div>
 
-                <div className="help-card">
-                  <h4>Two Content Types</h4>
-                  <ul>
-                    <li><strong style={{color: 'var(--type-long)'}}>Long-form</strong> — Full videos (tournaments, interviews, etc.) with 7 production stages</li>
-                    <li><strong style={{color: 'var(--type-short)'}}>Short-form</strong> — Quick clips, reels, shorts with 5 production stages</li>
-                  </ul>
-                </div>
-
-                <div className="help-card">
-                  <h4>Notification Badges</h4>
-                  <p>The numbers next to Pipeline and Ideas show <strong>new items you haven't seen yet</strong>. Once you view that section, they're marked as read. This helps you quickly spot what's changed since your last visit.</p>
+            {/* Getting Started Steps */}
+            <div className="help-section-title">Getting Started</div>
+            <div className="help-steps">
+              <div className="help-step">
+                <div className="help-step-number">1</div>
+                <div className="help-step-content">
+                  <h4>Add your first content</h4>
+                  <p>Click the yellow "Add Content" button or press <strong>N</strong>. Fill in the title, type, dates, and assignee.</p>
                 </div>
               </div>
-            )}
-
-            {activeSection === 'pipeline' && (
-              <div className="help-section">
-                <h3>Pipeline View</h3>
-                <p>The Pipeline is your production command center. Content moves left-to-right through stages.</p>
-
-                <div className="help-card">
-                  <h4>Long-form Stages</h4>
-                  <ol className="help-stages">
-                    <li><span className="help-stage-dot" style={{background: '#8b5cf6'}}/>Idea — Initial concept</li>
-                    <li><span className="help-stage-dot" style={{background: '#3b82f6'}}/>Shoot Scheduled — Date locked in</li>
-                    <li><span className="help-stage-dot" style={{background: '#f59e0b'}}/>In Production — Currently filming</li>
-                    <li><span className="help-stage-dot" style={{background: '#ec4899'}}/>Editing — Post-production</li>
-                    <li><span className="help-stage-dot" style={{background: '#06b6d4'}}/>Review — Final review before publish</li>
-                    <li><span className="help-stage-dot" style={{background: '#10b981'}}/>Scheduled — Ready, waiting for release date</li>
-                    <li><span className="help-stage-dot" style={{background: '#D4FF00'}}/>Published — Live!</li>
-                  </ol>
-                </div>
-
-                <div className="help-card">
-                  <h4>Short-form Stages</h4>
-                  <ol className="help-stages">
-                    <li><span className="help-stage-dot" style={{background: '#8b5cf6'}}/>Idea — Initial concept</li>
-                    <li><span className="help-stage-dot" style={{background: '#3b82f6'}}/>Shoot — Filming</li>
-                    <li><span className="help-stage-dot" style={{background: '#ec4899'}}/>Edit — Post-production</li>
-                    <li><span className="help-stage-dot" style={{background: '#10b981'}}/>Scheduled — Ready for release</li>
-                    <li><span className="help-stage-dot" style={{background: '#D4FF00'}}/>Published — Live!</li>
-                  </ol>
-                </div>
-
-                <div className="help-card">
-                  <h4>How to Use</h4>
-                  <ul>
-                    <li><strong>Add content:</strong> Click the green "+ Add Content" button</li>
-                    <li><strong>Move content:</strong> Drag cards between columns, or use the arrow buttons</li>
-                    <li><strong>Edit content:</strong> Click any card to open details</li>
-                    <li><strong>Filter:</strong> Use "All Content", "Long-form", or "Short-form" tabs to filter</li>
-                  </ul>
+              <div className="help-step">
+                <div className="help-step-number">2</div>
+                <div className="help-step-content">
+                  <h4>Move cards as work progresses</h4>
+                  <p>Drag cards between columns or use the arrow buttons that appear on hover.</p>
                 </div>
               </div>
-            )}
-
-            {activeSection === 'calendar' && (
-              <div className="help-section">
-                <h3>Calendar View</h3>
-                <p>See your content schedule at a glance with shoot and release dates.</p>
-
-                <div className="help-card">
-                  <h4>Understanding the Calendar</h4>
-                  <ul>
-                    <li><span className="help-dot" style={{background: 'var(--type-long)'}}/>Blue dot = Shoot day scheduled</li>
-                    <li><span className="help-dot" style={{background: 'var(--pl-lime)'}}/>Green dot = Release day scheduled</li>
-                    <li><strong>S:</strong> prefix = Shoot event</li>
-                    <li><strong>R:</strong> prefix = Release event</li>
-                  </ul>
-                </div>
-
-                <div className="help-card">
-                  <h4>How to Use</h4>
-                  <ul>
-                    <li><strong>Navigate:</strong> Use arrows to move between months</li>
-                    <li><strong>Today:</strong> Click "Today" to jump back to current month</li>
-                    <li><strong>View details:</strong> Click any event to see full content details</li>
-                    <li><strong>Add content:</strong> Click "+ Add Content" to create new</li>
-                  </ul>
+              <div className="help-step">
+                <div className="help-step-number">3</div>
+                <div className="help-step-content">
+                  <h4>Check the Calendar</h4>
+                  <p>See "S" for shoot days and "R" for release days. Click any event for details.</p>
                 </div>
               </div>
-            )}
+            </div>
 
-            {activeSection === 'ideas' && (
-              <div className="help-section">
-                <h3>Ideas Bank</h3>
-                <p>Capture ideas before they're ready for production. Think of this as your content brainstorm storage.</p>
-
-                <div className="help-card">
-                  <h4>How Ideas Work</h4>
-                  <ul>
-                    <li><strong>Add ideas quickly:</strong> Just a title is enough — description and tags are optional</li>
-                    <li><strong>Categorize:</strong> Mark as Long-form or Short-form</li>
-                    <li><strong>Tag:</strong> Add tags like "tutorial", "behind-scenes", etc.</li>
-                    <li><strong>Start production:</strong> Click "Start" to move an idea into the Pipeline</li>
-                    <li><strong>Delete:</strong> Remove ideas that won't happen</li>
-                  </ul>
-                </div>
-
-                <div className="help-card">
-                  <h4>Best Practices</h4>
-                  <ul>
-                    <li>Capture ideas immediately — don't let them slip away</li>
-                    <li>Review the Ideas Bank in team meetings for planning</li>
-                    <li>Only "Start" an idea when you're ready to commit to production</li>
-                  </ul>
-                </div>
+            {/* Keyboard Shortcuts */}
+            <div className="help-section-title">Keyboard Shortcuts</div>
+            <div className="help-shortcuts">
+              <div className="help-shortcut">
+                <span className="help-shortcut-key">N</span>
+                <span className="help-shortcut-desc">New content</span>
               </div>
-            )}
-
-            {activeSection === 'roles' && (
-              <div className="help-section">
-                <h3>Guide by Role</h3>
-
-                <div className="help-card help-role">
-                  <h4>🎬 Head of Production</h4>
-                  <p>Your main focus: Pipeline view</p>
-                  <ul>
-                    <li>Use Pipeline to track what's filming, editing, and in review</li>
-                    <li>Move cards as production progresses</li>
-                    <li>Add shoot dates when scheduling</li>
-                    <li>Use the "assignee" field to track who's responsible</li>
-                    <li>Check Calendar view to avoid scheduling conflicts</li>
-                  </ul>
-                </div>
-
-                <div className="help-card help-role">
-                  <h4>📱 Head of Social</h4>
-                  <p>Your main focus: Calendar + Short-form content</p>
-                  <ul>
-                    <li>Use Calendar to see what's releasing when</li>
-                    <li>Filter Pipeline by "Short-form" to focus on social content</li>
-                    <li>Add release dates for content going live</li>
-                    <li>Use Ideas Bank to capture quick content opportunities</li>
-                    <li>Check "Scheduled" column for what's ready to post</li>
-                  </ul>
-                </div>
-
-                <div className="help-card help-role">
-                  <h4>💼 Head of Sales</h4>
-                  <p>Your main focus: Calendar + Understanding what's coming</p>
-                  <ul>
-                    <li>Use Calendar for an overview of upcoming content</li>
-                    <li>Check Pipeline's "Scheduled" column to see what's releasing soon</li>
-                    <li>Look at "Published" to reference recent content</li>
-                    <li>Use this visibility for sales conversations and partnerships</li>
-                  </ul>
-                </div>
-
-                <div className="help-card help-role">
-                  <h4>👔 CEO</h4>
-                  <p>Your main focus: High-level overview</p>
-                  <ul>
-                    <li>Pipeline gives you a snapshot of all active production</li>
-                    <li>Calendar shows the content schedule at a glance</li>
-                    <li>Notification badges show you what's new since you last checked</li>
-                    <li>Click into any content card to see details and notes</li>
-                    <li>Ideas Bank shows what's in the brainstorm pipeline</li>
-                  </ul>
-                </div>
+              <div className="help-shortcut">
+                <span className="help-shortcut-key">Esc</span>
+                <span className="help-shortcut-desc">Close modal</span>
               </div>
-            )}
+            </div>
 
-            {activeSection === 'tips' && (
-              <div className="help-section">
-                <h3>Quick Tips</h3>
-
-                <div className="help-card">
-                  <h4>Keyboard & Navigation</h4>
-                  <ul>
-                    <li>Press <strong>Escape</strong> to close any popup/modal</li>
-                    <li>Click outside a modal to close it</li>
-                    <li>Drag and drop cards between Pipeline columns</li>
-                  </ul>
-                </div>
-
-                <div className="help-card">
-                  <h4>Staying Organized</h4>
-                  <ul>
-                    <li>Use <strong>tags</strong> to categorize content (tournament, tutorial, etc.)</li>
-                    <li>Always set <strong>release dates</strong> so content appears on the calendar</li>
-                    <li>Add <strong>notes</strong> for context that others need to know</li>
-                    <li>Assign content to team members for accountability</li>
-                  </ul>
-                </div>
-
-                <div className="help-card">
-                  <h4>Data & Backup</h4>
-                  <ul>
-                    <li><strong>Export:</strong> Click "Export" to download a backup of all data</li>
-                    <li><strong>Import:</strong> Click "Import" to restore from a backup file</li>
-                    <li>Data is saved automatically as you work</li>
-                  </ul>
-                </div>
-
-                <div className="help-card">
-                  <h4>Profile</h4>
-                  <ul>
-                    <li>Click your avatar in the sidebar to upload a profile picture</li>
-                    <li>Your edits are tracked — others can see who last modified content</li>
-                    <li>You stay logged in for 7 days automatically</li>
-                  </ul>
-                </div>
-              </div>
-            )}
+            {/* Pro Tips */}
+            <div className="help-tips-box">
+              <h4>💡 Pro Tips</h4>
+              <ul>
+                <li>Use filters (All / Long-form / Short-form) to focus on what matters</li>
+                <li>Release dates show in pink so you can spot deadlines fast</li>
+                <li>Made a mistake? Watch for the Undo button (5 second window)</li>
+                <li>Uncheck "Send notifications" when batch-adding to avoid email spam</li>
+                <li>Click your avatar to upload a profile picture</li>
+              </ul>
+            </div>
           </div>
         </div>
       );
