@@ -135,6 +135,16 @@
     .badge-type-long { background: rgba(59, 130, 246, 0.15); color: var(--type-long); }
     .badge-type-short { background: rgba(245, 158, 11, 0.15); color: var(--type-short); }
 
+    /* Toast */
+    .toast-container { position: fixed; bottom: var(--space-lg); left: 50%; transform: translateX(-50%); z-index: 2000; display: flex; flex-direction: column; gap: var(--space-sm); }
+    .toast { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-md) var(--space-lg); background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); animation: toastSlideIn 0.3s ease; min-width: 300px; }
+    .toast-message { flex: 1; font-size: 14px; color: var(--text-primary); }
+    .toast-undo { padding: var(--space-xs) var(--space-sm); background: var(--pl-lime); color: var(--pl-teal); font-size: 13px; font-weight: 600; border-radius: var(--radius-sm); transition: all var(--transition-fast); }
+    .toast-undo:hover { background: var(--pl-lime-hover); }
+    .toast-dismiss { padding: var(--space-xs); color: var(--text-muted); transition: color var(--transition-fast); }
+    .toast-dismiss:hover { color: var(--text-primary); }
+    @keyframes toastSlideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
     /* Modal */
     .modal-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: var(--space-lg); }
     .modal { background: var(--bg-secondary); border-radius: var(--radius-lg); border: 1px solid var(--border-default); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4); max-height: calc(100vh - 96px); display: flex; flex-direction: column; width: 100%; max-width: 560px; }
@@ -158,6 +168,10 @@
     .form-tag { padding: var(--space-xs) var(--space-sm); background: var(--bg-tertiary); border: 1px solid var(--border-default); border-radius: var(--radius-sm); color: var(--text-secondary); font-size: 13px; }
     .form-tag:hover { border-color: var(--text-muted); }
     .form-tag.active { background: var(--pl-lime-muted); border-color: var(--pl-lime); color: var(--pl-lime); }
+    .form-checkbox { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm); cursor: pointer; }
+    .form-checkbox input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--pl-lime); cursor: pointer; }
+    .form-checkbox-label { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+    .form-checkbox-hint { width: 100%; font-size: 12px; color: var(--text-muted); margin-left: 26px; }
     .form-actions { display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-md); padding-top: var(--space-md); border-top: 1px solid var(--border-default); }
     .form-actions-right { display: flex; gap: var(--space-sm); margin-left: auto; }
 
@@ -891,6 +905,21 @@
         return newContent;
       };
 
+      // Undo: move content back to ideas
+      const unpromoteContent = (contentId) => {
+        const item = data.content.find((c) => c.id === contentId);
+        if (!item) return null;
+
+        const newIdea = addIdea({
+          title: item.title,
+          description: item.description || '',
+          type: item.type,
+          tags: item.tags || [],
+        });
+        deleteContent(contentId);
+        return newIdea;
+      };
+
       const exportData = () => {
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -930,6 +959,7 @@
         addIdea,
         deleteIdea,
         promoteIdea,
+        unpromoteContent,
         exportData,
         importData
       };
@@ -943,6 +973,13 @@
 
     const formatMonthYear = (date) => formatDate(date, { month: 'long', year: 'numeric' });
     const formatDayOfWeek = (date) => formatDate(date, { weekday: 'short' });
+
+    // Get display name from email (capitalizes the part before @)
+    const getDisplayName = (email) => {
+      if (!email) return '';
+      const name = email.split('@')[0];
+      return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+    };
 
     const getMonthDays = (date) => {
       const year = date.getFullYear();
@@ -1661,6 +1698,33 @@
       <span className={`badge badge-${variant}`}>{children}</span>
     );
 
+    // Toast component for undo actions
+    const Toast = ({ message, onUndo, onDismiss }) => (
+      <div className="toast">
+        <span className="toast-message">{message}</span>
+        {onUndo && <button className="toast-undo" onClick={onUndo}>Undo</button>}
+        <button className="toast-dismiss" onClick={onDismiss}>
+          <CloseIcon />
+        </button>
+      </div>
+    );
+
+    const ToastContainer = ({ toasts, onDismiss, onUndo }) => {
+      if (toasts.length === 0) return null;
+      return (
+        <div className="toast-container">
+          {toasts.map((toast) => (
+            <Toast
+              key={toast.id}
+              message={toast.message}
+              onUndo={toast.undoAction ? () => onUndo(toast.id) : null}
+              onDismiss={() => onDismiss(toast.id)}
+            />
+          ))}
+        </div>
+      );
+    };
+
     const Modal = ({ isOpen, onClose, title, children }) => {
       const modalRef = useRef(null);
 
@@ -1722,7 +1786,7 @@
             <Badge variant={content.type === 'long-form' ? 'type-long' : 'type-short'}>
               {content.type === 'long-form' ? 'Long' : 'Short'}
             </Badge>
-            {content.assignee && <span className="content-card-assignee">{content.assignee}</span>}
+            {content.assignee && <span className="content-card-assignee">{getDisplayName(content.assignee)}</span>}
           </div>
           <h4 className="content-card-title">{content.title}</h4>
           {!compact && content.description && <p className="content-card-desc">{content.description}</p>}
@@ -1741,7 +1805,7 @@
           {content.updatedBy && (
             <div className="content-card-meta">
               <UserAvatar email={content.updatedBy} size={16} />
-              <span>Edited by {content.updatedBy.split('@')[0]}</span>
+              <span>Edited by {getDisplayName(content.updatedBy)}</span>
             </div>
           )}
           <div className="content-card-stage-indicator" style={{ background: currentStage?.color }} />
@@ -1763,6 +1827,7 @@
         assignee: content?.assignee || '',
         tags: content?.tags || [],
         notes: content?.notes || '',
+        sendNotifications: content?.sendNotifications ?? true, // Default to true for new content
       });
 
       // Get team members from localStorage (added via Admin Portal)
@@ -1851,7 +1916,7 @@
               <label className="form-label">Assignee</label>
               <select name="assignee" value={formData.assignee} onChange={handleChange} className="form-select">
                 <option value="">Unassigned</option>
-                {teamMembers.map((member) => <option key={member} value={member}>{member}</option>)}
+                {teamMembers.map((member) => <option key={member} value={member}>{getDisplayName(member)}</option>)}
               </select>
             </div>
           </div>
@@ -1866,6 +1931,18 @@
           <div className="form-group">
             <label className="form-label">Notes</label>
             <textarea name="notes" value={formData.notes} onChange={handleChange} className="form-textarea" placeholder="Additional notes..." rows={3} />
+          </div>
+          <div className="form-group">
+            <label className="form-checkbox">
+              <input
+                type="checkbox"
+                name="sendNotifications"
+                checked={formData.sendNotifications}
+                onChange={(e) => setFormData(prev => ({ ...prev, sendNotifications: e.target.checked }))}
+              />
+              <span className="form-checkbox-label">Send email notifications</span>
+              <span className="form-checkbox-hint">Notify assignee of this task and upcoming deadlines</span>
+            </label>
           </div>
           <div className="form-actions">
             {isEditing && <Button type="button" variant="danger" onClick={() => onDelete(content.id)}>Delete</Button>}
@@ -2189,6 +2266,11 @@
           <div className="sidebar-brand">
             <Logo size={36} showText={true} />
           </div>
+          <div className="sidebar-add">
+            <button className="sidebar-add-btn" onClick={onAddContent}>
+              <PlusIcon /> Add Content
+            </button>
+          </div>
           <nav className="sidebar-nav">
             {navItems.map((item) => (
               <button key={item.id} className={`sidebar-nav-item ${activeView === item.id ? 'active' : ''}`} onClick={() => onViewChange(item.id)}>
@@ -2210,11 +2292,6 @@
               </button>
             )}
           </nav>
-          <div className="sidebar-add">
-            <button className="sidebar-add-btn" onClick={onAddContent}>
-              <PlusIcon /> Add Content
-            </button>
-          </div>
           <div className="sidebar-section">
             <h3 className="sidebar-section-title">Content Types</h3>
             <div className="sidebar-type-item"><span className="sidebar-type-dot" style={{ background: '#3b82f6' }} /><span>Long-form</span></div>
@@ -2278,10 +2355,44 @@
       const [activeView, setActiveView] = useState('pipeline');
       const [modalOpen, setModalOpen] = useState(false);
       const [selectedContent, setSelectedContent] = useState(null);
+      const [toasts, setToasts] = useState([]);
 
       const { user } = useAuth();
       const { markContentRead, markIdeasRead, getUnreadContentCount, getUnreadIdeasCount } = useReadStatus();
-      const { content, ideas, team, deletedContent, addContent, updateContent, deleteContent, moveContent, restoreContent, permanentlyDeleteContent, emptyTrash, purgeOldDeletedContent, addIdea, deleteIdea, promoteIdea, exportData, importData } = useContentStore();
+      const { content, ideas, team, deletedContent, addContent, updateContent, deleteContent, moveContent, restoreContent, permanentlyDeleteContent, emptyTrash, purgeOldDeletedContent, addIdea, deleteIdea, promoteIdea, unpromoteContent, exportData, importData } = useContentStore();
+
+      // Toast management
+      const showToast = (message, undoAction = null, duration = 5000) => {
+        const id = Date.now();
+        setToasts(prev => [...prev, { id, message, undoAction }]);
+        setTimeout(() => dismissToast(id), duration);
+        return id;
+      };
+
+      const dismissToast = (id) => {
+        setToasts(prev => prev.filter(t => t.id !== id));
+      };
+
+      const handleToastUndo = (id) => {
+        const toast = toasts.find(t => t.id === id);
+        if (toast?.undoAction) {
+          toast.undoAction();
+        }
+        dismissToast(id);
+      };
+
+      // Wrapper for promoteIdea that shows undo toast
+      const handlePromoteIdea = (ideaId) => {
+        const idea = ideas.find(i => i.id === ideaId);
+        const newContent = promoteIdea(ideaId);
+        if (newContent && idea) {
+          showToast(
+            `"${idea.title}" moved to Pipeline`,
+            () => unpromoteContent(newContent.id)
+          );
+        }
+        return newContent;
+      };
 
       // Auto-purge deleted content older than 30 days on app load
       useEffect(() => {
@@ -2354,7 +2465,7 @@
           case 'calendar':
             return <MonthView content={content} onCardClick={handleCardClick} onAddClick={handleAddClick} />;
           case 'ideas':
-            return <IdeasBank ideas={ideas} onAddIdea={addIdea} onPromote={promoteIdea} onDelete={deleteIdea} />;
+            return <IdeasBank ideas={ideas} onAddIdea={addIdea} onPromote={handlePromoteIdea} onDelete={deleteIdea} />;
           case 'admin':
             return <AdminPortal deletedContent={deletedContent} onRestore={restoreContent} onPermanentDelete={permanentlyDeleteContent} onEmptyTrash={emptyTrash} />;
           case 'help':
@@ -2374,6 +2485,7 @@
           <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={selectedContent?.id ? 'Edit Content' : 'New Content'}>
             <ContentForm content={selectedContent} team={team} onSave={handleSave} onDelete={handleDelete} onClose={() => setModalOpen(false)} />
           </Modal>
+          <ToastContainer toasts={toasts} onDismiss={dismissToast} onUndo={handleToastUndo} />
         </div>
       );
     };
