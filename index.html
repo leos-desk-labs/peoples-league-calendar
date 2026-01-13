@@ -210,6 +210,8 @@
     /* Drag and Drop */
     .pipeline-column.drag-over { background: var(--bg-tertiary); border: 2px dashed var(--pl-lime); }
     .pipeline-column.drag-over .pipeline-column-content { background: var(--pl-lime-muted); }
+    .pipeline-column.drag-invalid { opacity: 0.5; border: 2px dashed var(--border-default); }
+    .pipeline-column.drag-invalid .pipeline-column-content { background: transparent; }
     .content-card.dragging { opacity: 0.5; transform: rotate(2deg); cursor: grabbing; }
     .content-card[draggable="true"] { cursor: grab; }
     .content-card[draggable="true"]:active { cursor: grabbing; }
@@ -2352,19 +2354,70 @@
       );
     };
 
-    const PipelineColumn = ({ stage, items, onCardClick, onMoveContent, allStages, onDragOver, onDrop, isDragOver, draggedItem }) => {
+    const PipelineColumn = ({ stage, items, onCardClick, onMoveContent, allStages, onDragOver, onDrop, isDragOver, draggedItem, canDrop = true }) => {
+      // Get the item's actual stages for move buttons (not unified stages)
+      const getItemStages = (item) => item.type === 'long-form' ? LONG_FORM_STAGES : SHORT_FORM_STAGES;
+
+      // Find current stage index - works for both regular and unified views
+      const getCurrentStageIndex = (item) => {
+        // If unified stages, find the unified stage this item is in
+        if (stage.stageIds) {
+          return allStages.findIndex(s => s.stageIds && s.stageIds[item.type] === item.stage);
+        }
+        return allStages.findIndex((s) => s.id === item.stage);
+      };
+
+      // Get target stage ID for move - maps unified stages back to actual stage IDs
+      const getTargetStageId = (item, targetStage) => {
+        if (targetStage.stageIds) {
+          return targetStage.stageIds[item.type];
+        }
+        return targetStage.id;
+      };
+
+      // Check if item can move to a target stage
+      const canMoveToStage = (item, targetStage) => {
+        if (targetStage.stageIds) {
+          return !!targetStage.stageIds[item.type];
+        }
+        const itemStages = getItemStages(item);
+        return itemStages.some(s => s.id === targetStage.id);
+      };
+
       const handleMoveClick = (e, item, direction) => {
         e.stopPropagation();
-        const currentIndex = allStages.findIndex((s) => s.id === item.stage);
-        const newIndex = direction === 'forward' ? currentIndex + 1 : currentIndex - 1;
-        if (newIndex >= 0 && newIndex < allStages.length) {
-          onMoveContent(item.id, allStages[newIndex].id);
+        const currentIndex = getCurrentStageIndex(item);
+
+        // Find next valid stage in the given direction
+        let newIndex = direction === 'forward' ? currentIndex + 1 : currentIndex - 1;
+        while (newIndex >= 0 && newIndex < allStages.length) {
+          if (canMoveToStage(item, allStages[newIndex])) {
+            const targetStageId = getTargetStageId(item, allStages[newIndex]);
+            if (targetStageId) {
+              onMoveContent(item.id, targetStageId);
+            }
+            return;
+          }
+          newIndex = direction === 'forward' ? newIndex + 1 : newIndex - 1;
         }
+      };
+
+      // Check if there's a valid stage to move to in a direction
+      const hasValidMoveInDirection = (item, direction) => {
+        const currentIndex = getCurrentStageIndex(item);
+        let checkIndex = direction === 'forward' ? currentIndex + 1 : currentIndex - 1;
+        while (checkIndex >= 0 && checkIndex < allStages.length) {
+          if (canMoveToStage(item, allStages[checkIndex])) {
+            return true;
+          }
+          checkIndex = direction === 'forward' ? checkIndex + 1 : checkIndex - 1;
+        }
+        return false;
       };
 
       const handleDragOver = (e) => {
         e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
+        e.dataTransfer.dropEffect = canDrop ? 'move' : 'none';
         if (onDragOver) onDragOver(stage.id);
       };
 
@@ -2375,20 +2428,19 @@
 
       const handleDrop = (e) => {
         e.preventDefault();
+        if (!canDrop) return;
         const contentId = e.dataTransfer.getData('text/plain');
         if (contentId && onDrop) {
           onDrop(contentId, stage.id);
         }
       };
 
-      const canAcceptDrag = draggedItem ? allStages.some(s => s.id === stage.id) : true;
-
       return (
         <div
-          className={`pipeline-column ${isDragOver && canAcceptDrag ? 'drag-over' : ''}`}
-          onDragOver={canAcceptDrag ? handleDragOver : undefined}
+          className={`pipeline-column ${isDragOver && canDrop ? 'drag-over' : ''} ${isDragOver && !canDrop ? 'drag-invalid' : ''}`}
+          onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
-          onDrop={canAcceptDrag ? handleDrop : undefined}
+          onDrop={handleDrop}
         >
           <div className="pipeline-column-header">
             <div className="pipeline-column-dot" style={{ background: stage.color }} />
@@ -2396,17 +2448,16 @@
             <span className="pipeline-column-count">{items.length}</span>
           </div>
           <div className="pipeline-column-content">
-            {isDragOver && canAcceptDrag && <div className="drag-placeholder" />}
+            {isDragOver && canDrop && <div className="drag-placeholder" />}
             {items.map((item) => {
-              const currentIndex = allStages.findIndex((s) => s.id === item.stage);
-              const canMoveBack = currentIndex > 0;
-              const canMoveForward = currentIndex < allStages.length - 1;
+              const canMoveBack = hasValidMoveInDirection(item, 'back');
+              const canMoveForward = hasValidMoveInDirection(item, 'forward');
               return (
                 <div key={item.id} className="pipeline-card-wrapper">
                   <ContentCard content={item} onClick={() => onCardClick(item)} draggable={true} />
                   <div className="pipeline-card-actions">
-                    {canMoveBack && <button className="pipeline-move-btn" onClick={(e) => handleMoveClick(e, item, 'back')} title={`Move to ${allStages[currentIndex - 1].label}`}><ChevronLeft /></button>}
-                    {canMoveForward && <button className="pipeline-move-btn forward" onClick={(e) => handleMoveClick(e, item, 'forward')} title={`Move to ${allStages[currentIndex + 1].label}`}><ChevronRight /></button>}
+                    {canMoveBack && <button className="pipeline-move-btn" onClick={(e) => handleMoveClick(e, item, 'back')} title="Move back"><ChevronLeft /></button>}
+                    {canMoveForward && <button className="pipeline-move-btn forward" onClick={(e) => handleMoveClick(e, item, 'forward')} title="Move forward"><ChevronRight /></button>}
                   </div>
                 </div>
               );
@@ -2421,28 +2472,29 @@
       const [dragOverStage, setDragOverStage] = useState(null);
       const [draggedItem, setDraggedItem] = useState(null);
 
-      // For "all" view, we show a combined view with both stage sets
-      // Long-form uses: scheduled-shoot, production, editing, review, scheduled-release, published
-      // Short-form uses: shoot, edit, scheduled, published
-      const ALL_STAGES = [
-        { id: 'scheduled-shoot', label: 'Shoot Scheduled', color: '#3b82f6', types: ['long-form'] },
-        { id: 'shoot', label: 'Shoot', color: '#3b82f6', types: ['short-form'] },
-        { id: 'production', label: 'In Production', color: '#f59e0b', types: ['long-form'] },
-        { id: 'editing', label: 'Editing', color: '#ec4899', types: ['long-form'] },
-        { id: 'edit', label: 'Edit', color: '#ec4899', types: ['short-form'] },
-        { id: 'review', label: 'Review', color: '#06b6d4', types: ['long-form'] },
-        { id: 'scheduled-release', label: 'Scheduled', color: '#10b981', types: ['long-form'] },
-        { id: 'scheduled', label: 'Scheduled', color: '#10b981', types: ['short-form'] },
-        { id: 'published', label: 'Published', color: '#D4FF00', types: ['long-form', 'short-form'] },
+      // Unified stages for "All Content" view - groups equivalent stages from both pipelines
+      // Each unified stage maps to the actual stage IDs for each content type
+      const UNIFIED_STAGES = [
+        { id: 'unified-shoot', label: 'Shoot', color: '#3b82f6', stageIds: { 'long-form': 'scheduled-shoot', 'short-form': 'shoot' } },
+        { id: 'unified-production', label: 'Production', color: '#f59e0b', stageIds: { 'long-form': 'production' } },
+        { id: 'unified-editing', label: 'Editing', color: '#ec4899', stageIds: { 'long-form': 'editing', 'short-form': 'edit' } },
+        { id: 'unified-review', label: 'Review', color: '#06b6d4', stageIds: { 'long-form': 'review' } },
+        { id: 'unified-scheduled', label: 'Scheduled', color: '#10b981', stageIds: { 'long-form': 'scheduled-release', 'short-form': 'scheduled' } },
+        { id: 'unified-published', label: 'Published', color: '#D4FF00', stageIds: { 'long-form': 'published', 'short-form': 'published' } },
       ];
 
-      const stages = activeType === 'long-form' ? LONG_FORM_STAGES : activeType === 'short-form' ? SHORT_FORM_STAGES : ALL_STAGES;
+      const stages = activeType === 'long-form' ? LONG_FORM_STAGES : activeType === 'short-form' ? SHORT_FORM_STAGES : UNIFIED_STAGES;
 
-      const getItemsForStage = (stageId) => {
+      const getItemsForStage = (stage) => {
         if (activeType === 'all') {
-          return content.filter((item) => item.stage === stageId);
+          // For unified view, get items that match any of the mapped stage IDs
+          const stageIds = stage.stageIds || {};
+          return content.filter((item) => {
+            const mappedStageId = stageIds[item.type];
+            return mappedStageId && item.stage === mappedStageId;
+          });
         }
-        return content.filter((item) => item.type === activeType && item.stage === stageId);
+        return content.filter((item) => item.type === activeType && item.stage === stage.id);
       };
 
       const handleDragOver = (stageId) => {
@@ -2451,12 +2503,30 @@
 
       const handleDrop = (contentId, newStageId) => {
         const item = content.find(c => c.id === contentId);
-        if (item) {
-          const itemStages = item.type === 'long-form' ? LONG_FORM_STAGES : SHORT_FORM_STAGES;
-          if (itemStages.some(s => s.id === newStageId)) {
-            onMoveContent(contentId, newStageId);
+        if (!item) return;
+
+        let actualStageId = newStageId;
+
+        // If dropping in unified view, map to the correct actual stage for the item's type
+        if (activeType === 'all') {
+          const unifiedStage = UNIFIED_STAGES.find(s => s.id === newStageId);
+          if (unifiedStage && unifiedStage.stageIds) {
+            actualStageId = unifiedStage.stageIds[item.type];
+            if (!actualStageId) {
+              // This unified stage doesn't apply to this content type
+              setDragOverStage(null);
+              setDraggedItem(null);
+              return;
+            }
           }
         }
+
+        // Validate the stage is valid for this item type
+        const itemStages = item.type === 'long-form' ? LONG_FORM_STAGES : SHORT_FORM_STAGES;
+        if (itemStages.some(s => s.id === actualStageId)) {
+          onMoveContent(contentId, actualStageId);
+        }
+
         setDragOverStage(null);
         setDraggedItem(null);
       };
@@ -2468,6 +2538,13 @@
       const handleDragEnd = () => {
         setDragOverStage(null);
         setDraggedItem(null);
+      };
+
+      // Check if a unified stage accepts the dragged item type
+      const canDropInStage = (stage) => {
+        if (!draggedItem || activeType !== 'all') return true;
+        const stageIds = stage.stageIds || {};
+        return !!stageIds[draggedItem.type];
       };
 
       return (
@@ -2484,7 +2561,7 @@
               <PipelineColumn
                 key={stage.id}
                 stage={stage}
-                items={getItemsForStage(stage.id)}
+                items={getItemsForStage(stage)}
                 onCardClick={onCardClick}
                 onMoveContent={onMoveContent}
                 allStages={stages}
@@ -2492,6 +2569,7 @@
                 onDrop={handleDrop}
                 isDragOver={dragOverStage === stage.id}
                 draggedItem={draggedItem}
+                canDrop={canDropInStage(stage)}
               />
             ))}
           </div>
