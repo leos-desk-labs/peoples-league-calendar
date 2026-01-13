@@ -1970,15 +1970,17 @@
       );
     };
 
-    const ContentForm = ({ content, team, onSave, onDelete, onClose }) => {
+    const ContentForm = ({ content, team, onSave, onDelete, onClose, defaultType }) => {
       const { user } = useAuth();
       // Default stage based on content type
       const getDefaultStage = (type) => type === 'long-form' ? 'scheduled-shoot' : 'shoot';
+      // Use defaultType if provided (from pipeline filter), otherwise fall back to content type or short-form
+      const initialType = content?.type || defaultType || 'short-form';
       const [formData, setFormData] = useState({
         title: content?.title || '',
         description: content?.description || '',
-        type: content?.type || 'short-form',
-        stage: content?.stage || getDefaultStage(content?.type || 'short-form'),
+        type: initialType,
+        stage: content?.stage || getDefaultStage(initialType),
         shootDate: content?.shootDate || '',
         releaseDate: content?.releaseDate || '',
         assignee: content?.assignee || '',
@@ -2177,18 +2179,30 @@
       );
     };
 
-    const PipelineBoard = ({ content, onCardClick, onMoveContent, onAddClick }) => {
-      const [activeType, setActiveType] = useState('all');
+    const PipelineBoard = ({ content, onCardClick, onMoveContent, activeType, onTypeChange }) => {
       const [dragOverStage, setDragOverStage] = useState(null);
       const [draggedItem, setDraggedItem] = useState(null);
-      const stages = activeType === 'long-form' ? LONG_FORM_STAGES : activeType === 'short-form' ? SHORT_FORM_STAGES : LONG_FORM_STAGES;
+
+      // For "all" view, we show a combined view with both stage sets
+      // Long-form uses: scheduled-shoot, production, editing, review, scheduled-release, published
+      // Short-form uses: shoot, edit, scheduled, published
+      const ALL_STAGES = [
+        { id: 'scheduled-shoot', label: 'Shoot Scheduled', color: '#3b82f6', types: ['long-form'] },
+        { id: 'shoot', label: 'Shoot', color: '#3b82f6', types: ['short-form'] },
+        { id: 'production', label: 'In Production', color: '#f59e0b', types: ['long-form'] },
+        { id: 'editing', label: 'Editing', color: '#ec4899', types: ['long-form'] },
+        { id: 'edit', label: 'Edit', color: '#ec4899', types: ['short-form'] },
+        { id: 'review', label: 'Review', color: '#06b6d4', types: ['long-form'] },
+        { id: 'scheduled-release', label: 'Scheduled', color: '#10b981', types: ['long-form'] },
+        { id: 'scheduled', label: 'Scheduled', color: '#10b981', types: ['short-form'] },
+        { id: 'published', label: 'Published', color: '#D4FF00', types: ['long-form', 'short-form'] },
+      ];
+
+      const stages = activeType === 'long-form' ? LONG_FORM_STAGES : activeType === 'short-form' ? SHORT_FORM_STAGES : ALL_STAGES;
 
       const getItemsForStage = (stageId) => {
         if (activeType === 'all') {
-          return content.filter((item) => {
-            const itemStages = item.type === 'long-form' ? LONG_FORM_STAGES : SHORT_FORM_STAGES;
-            return itemStages.some((s) => s.id === stageId) && item.stage === stageId;
-          });
+          return content.filter((item) => item.stage === stageId);
         }
         return content.filter((item) => item.type === activeType && item.stage === stageId);
       };
@@ -2222,9 +2236,9 @@
         <div className="pipeline-board" onDragEnd={handleDragEnd}>
           <div className="pipeline-header">
             <div className="pipeline-filters">
-              <button className={`pipeline-filter ${activeType === 'all' ? 'active' : ''}`} onClick={() => setActiveType('all')}>All Content</button>
-              <button className={`pipeline-filter long ${activeType === 'long-form' ? 'active' : ''}`} onClick={() => setActiveType('long-form')}>Long-form</button>
-              <button className={`pipeline-filter short ${activeType === 'short-form' ? 'active' : ''}`} onClick={() => setActiveType('short-form')}>Short-form</button>
+              <button className={`pipeline-filter ${activeType === 'all' ? 'active' : ''}`} onClick={() => onTypeChange('all')}>All Content</button>
+              <button className={`pipeline-filter long ${activeType === 'long-form' ? 'active' : ''}`} onClick={() => onTypeChange('long-form')}>Long-form</button>
+              <button className={`pipeline-filter short ${activeType === 'short-form' ? 'active' : ''}`} onClick={() => onTypeChange('short-form')}>Short-form</button>
             </div>
           </div>
           <div className="pipeline-columns">
@@ -2513,6 +2527,7 @@
       const [activeView, setActiveView] = useState('pipeline');
       const [modalOpen, setModalOpen] = useState(false);
       const [selectedContent, setSelectedContent] = useState(null);
+      const [pipelineFilter, setPipelineFilter] = useState('all'); // Track pipeline filter for default type
       const [toasts, setToasts] = useState([]);
 
       const { user } = useAuth();
@@ -2600,7 +2615,10 @@
       }, [modalOpen]);
 
       const handleCardClick = (item) => { setSelectedContent(item); setModalOpen(true); };
-      const handleAddClick = () => { setSelectedContent(null); setModalOpen(true); };
+      const handleAddClick = () => {
+        setSelectedContent(null);
+        setModalOpen(true);
+      };
       const handleSave = async (formData) => {
         const isNew = !selectedContent?.id;
         const previousAssignee = selectedContent?.assignee;
@@ -2690,7 +2708,7 @@
       const renderView = () => {
         switch (activeView) {
           case 'pipeline':
-            return <PipelineBoard content={content} onCardClick={handleCardClick} onMoveContent={handleMoveContent} onAddClick={handleAddClick} />;
+            return <PipelineBoard content={content} onCardClick={handleCardClick} onMoveContent={handleMoveContent} activeType={pipelineFilter} onTypeChange={setPipelineFilter} />;
           case 'calendar':
             return <MonthView content={content} onCardClick={handleCardClick} onAddClick={handleAddClick} />;
           case 'ideas':
@@ -2714,7 +2732,7 @@
             <div className="page-content">{renderView()}</div>
           </main>
           <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={selectedContent?.id ? 'Edit Content' : 'New Content'}>
-            <ContentForm content={selectedContent} team={team} onSave={handleSave} onDelete={handleDelete} onClose={() => setModalOpen(false)} />
+            <ContentForm content={selectedContent} team={team} onSave={handleSave} onDelete={handleDelete} onClose={() => setModalOpen(false)} defaultType={activeView === 'pipeline' && pipelineFilter !== 'all' ? pipelineFilter : null} />
           </Modal>
           <ToastContainer toasts={toasts} onDismiss={dismissToast} onUndo={handleToastUndo} />
         </div>
