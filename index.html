@@ -740,7 +740,7 @@
         const { data, error } = await supabase.auth.signInWithOtp({
           email,
           options: {
-            shouldCreateUser: false, // Don't auto-create users - admin must add them
+            shouldCreateUser: true, // Allow anyone to sign in - they'll be auto-registered
           }
         });
         return { data, error };
@@ -1986,8 +1986,8 @@
 
         const { data, error } = await sendOTP(email);
         if (error) {
-          if (error.message.includes('Signups not allowed')) {
-            setError('This email is not registered. Please contact an admin to get access.');
+          if (error.message.includes('rate limit')) {
+            setError('Too many attempts. Please wait a minute and try again.');
           } else {
             setError(error.message);
           }
