@@ -370,6 +370,30 @@
     .help-tips-box li::before { content: '→'; position: absolute; left: 0; color: var(--pl-lime); }
     .help-btn { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md); color: var(--text-secondary); transition: all var(--transition-fast); width: 100%; text-align: left; font-size: 13px; }
     .help-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+    /* Activity Log */
+    .activity-log { display: flex; flex-direction: column; gap: var(--space-lg); }
+    .activity-log-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .activity-log-header h2 { font-size: 20px; font-weight: 600; margin-bottom: var(--space-xs); }
+    .activity-log-header p { font-size: 13px; color: var(--text-secondary); }
+    .activity-log-list { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); overflow: hidden; }
+    .activity-log-empty { padding: var(--space-xl); text-align: center; color: var(--text-muted); font-size: 13px; }
+    .activity-log-item { display: flex; gap: var(--space-md); padding: var(--space-md) var(--space-lg); border-bottom: 1px solid var(--border-default); }
+    .activity-log-item:last-child { border-bottom: none; }
+    .activity-log-item:hover { background: var(--bg-tertiary); }
+    .activity-log-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; }
+    .activity-log-icon.add { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .activity-log-icon.edit { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+    .activity-log-icon.delete { background: rgba(248, 81, 73, 0.15); color: #f85149; }
+    .activity-log-icon.move { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+    .activity-log-icon.promote { background: rgba(231, 255, 1, 0.15); color: var(--pl-lime); }
+    .activity-log-icon.restore { background: rgba(6, 182, 212, 0.15); color: #06b6d4; }
+    .activity-log-content { flex: 1; min-width: 0; }
+    .activity-log-action { font-size: 14px; color: var(--text-primary); margin-bottom: 2px; }
+    .activity-log-action strong { font-weight: 600; }
+    .activity-log-meta { display: flex; gap: var(--space-md); font-size: 12px; color: var(--text-muted); }
+    .activity-log-user { color: var(--text-secondary); }
+    .activity-log-time { color: var(--text-muted); }
   </style>
 </head>
 <body>
@@ -800,6 +824,36 @@
       }, [key, storedValue]);
 
       return [storedValue, setStoredValue];
+    }
+
+    // Activity Log - records all user actions
+    const ActivityLogContext = createContext(null);
+
+    function useActivityLog() {
+      return useContext(ActivityLogContext);
+    }
+
+    function ActivityLogProvider({ children }) {
+      const [logs, setLogs] = useLocalStorage('pl-activity-log', []);
+
+      const addLog = (action, details, userEmail) => {
+        const entry = {
+          id: crypto.randomUUID(),
+          action,
+          details,
+          user: userEmail || 'Unknown',
+          timestamp: new Date().toISOString(),
+        };
+        setLogs(prev => [entry, ...prev].slice(0, 500)); // Keep last 500 entries
+      };
+
+      const clearLogs = () => setLogs([]);
+
+      return (
+        <ActivityLogContext.Provider value={{ logs, addLog, clearLogs }}>
+          {children}
+        </ActivityLogContext.Provider>
+      );
     }
 
     function useContentStore() {
@@ -1426,6 +1480,73 @@
                 <li>Click your avatar to upload a profile picture</li>
               </ul>
             </div>
+          </div>
+        </div>
+      );
+    };
+
+    // Activity Log Component
+    const ActivityLog = ({ onClose }) => {
+      const { logs } = useActivityLog();
+
+      const getActionIcon = (action) => {
+        if (action.includes('added') || action.includes('created')) return { icon: '+', className: 'add' };
+        if (action.includes('edited') || action.includes('updated')) return { icon: '✎', className: 'edit' };
+        if (action.includes('deleted')) return { icon: '×', className: 'delete' };
+        if (action.includes('moved')) return { icon: '→', className: 'move' };
+        if (action.includes('promoted') || action.includes('started')) return { icon: '↑', className: 'promote' };
+        if (action.includes('restored')) return { icon: '↩', className: 'restore' };
+        return { icon: '•', className: 'edit' };
+      };
+
+      const formatTime = (timestamp) => {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diff = now - date;
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+
+        if (minutes < 1) return 'Just now';
+        if (minutes < 60) return `${minutes}m ago`;
+        if (hours < 24) return `${hours}h ago`;
+        if (days < 7) return `${days}d ago`;
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      };
+
+      return (
+        <div className="activity-log">
+          <div className="activity-log-header">
+            <div>
+              <h2>Activity Log</h2>
+              <p>A record of all changes made to the calendar</p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={onClose}><CloseIcon /></Button>
+          </div>
+
+          <div className="activity-log-list">
+            {logs.length === 0 ? (
+              <div className="activity-log-empty">No activity recorded yet. Actions will appear here as you use the calendar.</div>
+            ) : (
+              logs.map((log) => {
+                const { icon, className } = getActionIcon(log.action);
+                return (
+                  <div key={log.id} className="activity-log-item">
+                    <div className={`activity-log-icon ${className}`}>{icon}</div>
+                    <div className="activity-log-content">
+                      <div className="activity-log-action">
+                        <strong>{log.action}</strong>
+                        {log.details && ` — ${log.details}`}
+                      </div>
+                      <div className="activity-log-meta">
+                        <span className="activity-log-user">{log.user}</span>
+                        <span className="activity-log-time">{formatTime(log.timestamp)}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       );
@@ -2185,7 +2306,7 @@
       );
     };
 
-    const Header = ({ onExport, onImport }) => {
+    const Header = ({ onExport, onImport, onViewLog }) => {
       const handleImport = () => {
         const input = document.createElement('input');
         input.type = 'file';
@@ -2211,6 +2332,7 @@
           <div className="header-right">
             <Button variant="ghost" size="sm" onClick={handleImport}>Import</Button>
             <Button variant="ghost" size="sm" onClick={onExport}>Export</Button>
+            <Button variant="ghost" size="sm" onClick={onViewLog}>Log</Button>
           </div>
         </header>
       );
@@ -2225,6 +2347,7 @@
       const { user } = useAuth();
       const { markContentRead, markIdeasRead, getUnreadContentCount, getUnreadIdeasCount } = useReadStatus();
       const { content, ideas, team, deletedContent, addContent, updateContent, deleteContent, moveContent, restoreContent, permanentlyDeleteContent, emptyTrash, purgeOldDeletedContent, addIdea, deleteIdea, promoteIdea, unpromoteContent, exportData, importData } = useContentStore();
+      const { addLog } = useActivityLog();
 
       // Toast management
       const showToast = (message, undoAction = null, duration = 5000) => {
@@ -2251,6 +2374,7 @@
         const idea = ideas.find(i => i.id === ideaId);
         const newContent = promoteIdea(ideaId);
         if (newContent && idea) {
+          addLog('Started idea in pipeline', idea.title, getDisplayName(user?.email));
           showToast(
             `"${idea.title}" moved to Pipeline`,
             () => unpromoteContent(newContent.id)
@@ -2310,11 +2434,14 @@
         const isNew = !selectedContent?.id;
         const previousAssignee = selectedContent?.assignee;
         const newAssignee = formData.assignee;
+        const userName = getDisplayName(user?.email);
 
         if (isNew) {
           addContent(formData);
+          addLog('Added new content', formData.title, userName);
         } else {
           updateContent(selectedContent.id, formData);
+          addLog('Edited content', formData.title, userName);
         }
         setModalOpen(false);
 
@@ -2336,10 +2463,51 @@
           }
         }
       };
-      const handleDelete = (id) => { deleteContent(id); setModalOpen(false); };
+      const handleDelete = (id) => {
+        const item = content.find(c => c.id === id);
+        deleteContent(id);
+        if (item) {
+          addLog('Deleted content', item.title, getDisplayName(user?.email));
+        }
+        setModalOpen(false);
+      };
       const handleImport = (jsonData) => {
         if (importData(jsonData)) { alert('Data imported successfully!'); }
         else { alert('Failed to import data. Please check the file format.'); }
+      };
+
+      // Wrapper for moveContent with logging
+      const handleMoveContent = (contentId, newStage) => {
+        const item = content.find(c => c.id === contentId);
+        moveContent(contentId, newStage);
+        if (item) {
+          const stageName = newStage.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+          addLog(`Moved content to ${stageName}`, item.title, getDisplayName(user?.email));
+        }
+      };
+
+      // Wrapper for addIdea with logging
+      const handleAddIdea = (ideaData) => {
+        addIdea(ideaData);
+        addLog('Added new idea', ideaData.title, getDisplayName(user?.email));
+      };
+
+      // Wrapper for deleteIdea with logging
+      const handleDeleteIdea = (ideaId) => {
+        const idea = ideas.find(i => i.id === ideaId);
+        deleteIdea(ideaId);
+        if (idea) {
+          addLog('Deleted idea', idea.title, getDisplayName(user?.email));
+        }
+      };
+
+      // Wrapper for restoreContent with logging
+      const handleRestoreContent = (contentId) => {
+        const item = deletedContent.find(c => c.id === contentId);
+        restoreContent(contentId);
+        if (item) {
+          addLog('Restored content from trash', item.title, getDisplayName(user?.email));
+        }
       };
 
       // Count unread items for notifications
@@ -2351,15 +2519,17 @@
       const renderView = () => {
         switch (activeView) {
           case 'pipeline':
-            return <PipelineBoard content={content} onCardClick={handleCardClick} onMoveContent={moveContent} onAddClick={handleAddClick} />;
+            return <PipelineBoard content={content} onCardClick={handleCardClick} onMoveContent={handleMoveContent} onAddClick={handleAddClick} />;
           case 'calendar':
             return <MonthView content={content} onCardClick={handleCardClick} onAddClick={handleAddClick} />;
           case 'ideas':
-            return <IdeasBank ideas={ideas} onAddIdea={addIdea} onPromote={handlePromoteIdea} onDelete={deleteIdea} />;
+            return <IdeasBank ideas={ideas} onAddIdea={handleAddIdea} onPromote={handlePromoteIdea} onDelete={handleDeleteIdea} />;
           case 'admin':
-            return <AdminPortal deletedContent={deletedContent} onRestore={restoreContent} onPermanentDelete={permanentlyDeleteContent} onEmptyTrash={emptyTrash} />;
+            return <AdminPortal deletedContent={deletedContent} onRestore={handleRestoreContent} onPermanentDelete={permanentlyDeleteContent} onEmptyTrash={emptyTrash} />;
           case 'help':
             return <HelpGuide onClose={() => setActiveView('pipeline')} />;
+          case 'log':
+            return <ActivityLog onClose={() => setActiveView('pipeline')} />;
           default:
             return null;
         }
@@ -2368,7 +2538,7 @@
       return (
         <div className="app">
           <Sidebar activeView={activeView} onViewChange={setActiveView} contentCounts={unreadCounts} onAddContent={handleAddClick} />
-          <Header onExport={exportData} onImport={handleImport} />
+          <Header onExport={exportData} onImport={handleImport} onViewLog={() => setActiveView('log')} />
           <main className="main-content">
             <div className="page-content">{renderView()}</div>
           </main>
@@ -2397,13 +2567,15 @@
 
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(
-      <ProfilePicsProvider>
-        <ReadStatusProvider>
-          <AuthProvider>
-            <App />
-          </AuthProvider>
-        </ReadStatusProvider>
-      </ProfilePicsProvider>
+      <ActivityLogProvider>
+        <ProfilePicsProvider>
+          <ReadStatusProvider>
+            <AuthProvider>
+              <App />
+            </AuthProvider>
+          </ReadStatusProvider>
+        </ProfilePicsProvider>
+      </ActivityLogProvider>
     );
   </script>
 </body>
