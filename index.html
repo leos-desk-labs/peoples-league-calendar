@@ -311,6 +311,12 @@
     .admin-nav-item { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md); color: var(--text-secondary); transition: all var(--transition-fast); width: 100%; text-align: left; margin-top: var(--space-xs); }
     .admin-nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
     .admin-nav-item.active { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+    .admin-trash-list { display: flex; flex-direction: column; gap: var(--space-sm); }
+    .admin-trash-item { display: flex; align-items: center; justify-content: space-between; padding: var(--space-sm) var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md); }
+    .admin-trash-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+    .admin-trash-info strong { font-size: 13px; font-weight: 500; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .admin-trash-meta { font-size: 11px; color: var(--text-muted); }
+    .admin-trash-actions { display: flex; gap: var(--space-xs); flex-shrink: 0; }
 
     /* Help Guide */
     .help-guide { height: calc(100vh - var(--header-height) - 48px); display: flex; flex-direction: column; }
@@ -681,7 +687,6 @@
 
     // Data
     const LONG_FORM_STAGES = [
-      { id: 'idea', label: 'Idea', color: '#8b5cf6' },
       { id: 'scheduled-shoot', label: 'Shoot Scheduled', color: '#3b82f6' },
       { id: 'production', label: 'In Production', color: '#f59e0b' },
       { id: 'editing', label: 'Editing', color: '#ec4899' },
@@ -691,7 +696,6 @@
     ];
 
     const SHORT_FORM_STAGES = [
-      { id: 'idea', label: 'Idea', color: '#8b5cf6' },
       { id: 'shoot', label: 'Shoot', color: '#3b82f6' },
       { id: 'edit', label: 'Edit', color: '#ec4899' },
       { id: 'scheduled', label: 'Scheduled', color: '#10b981' },
@@ -734,6 +738,7 @@
         { id: 'idea-3', title: 'Shot of the week', description: 'Weekly compilation of best shots', type: 'short-form', tags: ['highlights'] },
       ],
       team: ['Clay'],
+      deletedContent: [], // Trash bin for deleted content - auto-purges after 30 days
     };
 
     // Hooks
@@ -788,7 +793,59 @@
       };
 
       const deleteContent = (id) => {
-        setData((prev) => ({ ...prev, content: prev.content.filter((item) => item.id !== id) }));
+        const itemToDelete = data.content.find((item) => item.id === id);
+        if (!itemToDelete) return;
+
+        const deletedItem = {
+          ...itemToDelete,
+          deletedBy: user?.email || 'Unknown',
+          deletedAt: new Date().toISOString(),
+        };
+
+        setData((prev) => ({
+          ...prev,
+          content: prev.content.filter((item) => item.id !== id),
+          deletedContent: [...(prev.deletedContent || []), deletedItem],
+        }));
+      };
+
+      const restoreContent = (id) => {
+        const itemToRestore = data.deletedContent?.find((item) => item.id === id);
+        if (!itemToRestore) return;
+
+        const { deletedBy, deletedAt, ...restoredItem } = itemToRestore;
+        restoredItem.updatedBy = user?.email || 'Unknown';
+        restoredItem.updatedAt = new Date().toISOString();
+
+        setData((prev) => ({
+          ...prev,
+          content: [...prev.content, restoredItem],
+          deletedContent: (prev.deletedContent || []).filter((item) => item.id !== id),
+        }));
+      };
+
+      const permanentlyDeleteContent = (id) => {
+        setData((prev) => ({
+          ...prev,
+          deletedContent: (prev.deletedContent || []).filter((item) => item.id !== id),
+        }));
+      };
+
+      const emptyTrash = () => {
+        setData((prev) => ({ ...prev, deletedContent: [] }));
+      };
+
+      // Auto-purge items older than 30 days from trash
+      const purgeOldDeletedContent = () => {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        setData((prev) => ({
+          ...prev,
+          deletedContent: (prev.deletedContent || []).filter((item) =>
+            new Date(item.deletedAt) > thirtyDaysAgo
+          ),
+        }));
       };
 
       const moveContent = (id, newStage) => {
@@ -813,11 +870,13 @@
       const promoteIdea = (ideaId) => {
         const idea = data.ideas.find((i) => i.id === ideaId);
         if (!idea) return null;
+        // Set first stage based on content type
+        const firstStage = idea.type === 'long-form' ? 'scheduled-shoot' : 'shoot';
         const newContent = addContent({
           title: idea.title,
           description: idea.description || '',
           type: idea.type,
-          stage: 'idea',
+          stage: firstStage,
           shootDate: '',
           releaseDate: '',
           assignee: '',
@@ -851,7 +910,25 @@
         }
       };
 
-      return { content: data.content, ideas: data.ideas, team: data.team, addContent, updateContent, deleteContent, moveContent, addIdea, deleteIdea, promoteIdea, exportData, importData };
+      return {
+        content: data.content,
+        ideas: data.ideas,
+        team: data.team,
+        deletedContent: data.deletedContent || [],
+        addContent,
+        updateContent,
+        deleteContent,
+        moveContent,
+        restoreContent,
+        permanentlyDeleteContent,
+        emptyTrash,
+        purgeOldDeletedContent,
+        addIdea,
+        deleteIdea,
+        promoteIdea,
+        exportData,
+        importData
+      };
     }
 
     // Date utilities
@@ -1023,11 +1100,12 @@
     };
 
     // Admin Portal Component
-    const AdminPortal = ({ onClose }) => {
+    const AdminPortal = ({ deletedContent = [], onRestore, onPermanentDelete, onEmptyTrash }) => {
       const { inviteUser } = useAuth();
       const [email, setEmail] = useState('');
       const [loading, setLoading] = useState(false);
       const [message, setMessage] = useState({ type: '', text: '' });
+      const [showTrash, setShowTrash] = useState(false);
       const [teamMembers, setTeamMembers] = useState(() => {
         try {
           return JSON.parse(localStorage.getItem('pl-team-members') || '[]');
@@ -1130,6 +1208,57 @@
                   </div>
                 ))}
               </div>
+            )}
+          </div>
+
+          <div className="admin-section">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-md)' }}>
+              <h3 style={{ margin: 0 }}>Deleted Content</h3>
+              <Button variant="ghost" size="sm" onClick={() => setShowTrash(!showTrash)}>
+                {showTrash ? 'Hide' : 'Show'} ({deletedContent.length})
+              </Button>
+            </div>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: 'var(--space-md)' }}>
+              Cards deleted by team members are kept here for 30 days before being permanently removed.
+            </p>
+            {showTrash && (
+              <>
+                {deletedContent.length === 0 ? (
+                  <p className="admin-empty">No deleted content</p>
+                ) : (
+                  <>
+                    <div className="admin-trash-list">
+                      {deletedContent.map(item => (
+                        <div key={item.id} className="admin-trash-item">
+                          <div className="admin-trash-info">
+                            <strong>{item.title}</strong>
+                            <span className="admin-trash-meta">
+                              Deleted by {item.deletedBy} on {new Date(item.deletedAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <div className="admin-trash-actions">
+                            <Button variant="ghost" size="sm" onClick={() => onRestore(item.id)} title="Restore">
+                              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                <path d="M1 7a6 6 0 1011.5 2.5M12.5 9.5v-3h-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => confirm('Permanently delete this card?') && onPermanentDelete(item.id)} title="Delete permanently">
+                              <TrashIcon />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {deletedContent.length > 0 && (
+                      <div style={{ marginTop: 'var(--space-md)' }}>
+                        <Button variant="ghost" size="sm" onClick={() => confirm('Empty trash? This cannot be undone.') && onEmptyTrash()}>
+                          Empty Trash
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -1488,16 +1617,16 @@
                     <input
                       type="text"
                       value={code}
-                      onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                      onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                       className="form-input"
-                      placeholder="00000000"
+                      placeholder="000000"
                       required
                       autoFocus
-                      style={{ letterSpacing: '0.3em', textAlign: 'center', fontSize: '20px' }}
-                      maxLength={8}
+                      style={{ letterSpacing: '0.4em', textAlign: 'center', fontSize: '22px' }}
+                      maxLength={6}
                     />
                   </div>
-                  <Button variant="primary" type="submit" disabled={loading || code.length !== 8}>
+                  <Button variant="primary" type="submit" disabled={loading || code.length !== 6}>
                     {loading ? <span className="loading-spinner" /> : 'Verify & Sign In'}
                   </Button>
                   <div style={{ textAlign: 'center', marginTop: 'var(--space-md)' }}>
@@ -1618,11 +1747,13 @@
 
     const ContentForm = ({ content, team, onSave, onDelete, onClose }) => {
       const { user } = useAuth();
+      // Default stage based on content type
+      const getDefaultStage = (type) => type === 'long-form' ? 'scheduled-shoot' : 'shoot';
       const [formData, setFormData] = useState({
         title: content?.title || '',
         description: content?.description || '',
         type: content?.type || 'short-form',
-        stage: content?.stage || 'idea',
+        stage: content?.stage || getDefaultStage(content?.type || 'short-form'),
         shootDate: content?.shootDate || '',
         releaseDate: content?.releaseDate || '',
         assignee: content?.assignee || '',
@@ -1654,7 +1785,7 @@
       };
 
       const handleTypeChange = (type) => {
-        setFormData((prev) => ({ ...prev, type, stage: 'idea' }));
+        setFormData((prev) => ({ ...prev, type, stage: getDefaultStage(type) }));
       };
 
       const handleTagToggle = (tag) => {
@@ -2143,7 +2274,12 @@
 
       const { user } = useAuth();
       const { markContentRead, markIdeasRead, getUnreadContentCount, getUnreadIdeasCount } = useReadStatus();
-      const { content, ideas, team, addContent, updateContent, deleteContent, moveContent, addIdea, deleteIdea, promoteIdea, exportData, importData } = useContentStore();
+      const { content, ideas, team, deletedContent, addContent, updateContent, deleteContent, moveContent, restoreContent, permanentlyDeleteContent, emptyTrash, purgeOldDeletedContent, addIdea, deleteIdea, promoteIdea, exportData, importData } = useContentStore();
+
+      // Auto-purge deleted content older than 30 days on app load
+      useEffect(() => {
+        purgeOldDeletedContent();
+      }, []);
 
       // Mark items as read when viewing each section
       useEffect(() => {
@@ -2192,7 +2328,7 @@
           case 'ideas':
             return <IdeasBank ideas={ideas} onAddIdea={addIdea} onPromote={promoteIdea} onDelete={deleteIdea} />;
           case 'admin':
-            return <AdminPortal />;
+            return <AdminPortal deletedContent={deletedContent} onRestore={restoreContent} onPermanentDelete={permanentlyDeleteContent} onEmptyTrash={emptyTrash} />;
           case 'help':
             return <HelpGuide onClose={() => setActiveView('pipeline')} />;
           default:
