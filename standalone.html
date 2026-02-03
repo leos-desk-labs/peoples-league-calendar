@@ -1972,8 +1972,8 @@
 
       const sortedContent = [...publishedContent].sort((a, b) => {
         if (sortBy === 'releaseDate') {
-          const dateA = a.releaseDate ? new Date(a.releaseDate) : new Date(0);
-          const dateB = b.releaseDate ? new Date(b.releaseDate) : new Date(0);
+          const dateA = a.releaseDate ? (() => { const [y,m,d] = a.releaseDate.split('-').map(Number); return new Date(y, m-1, d); })() : new Date(0);
+          const dateB = b.releaseDate ? (() => { const [y,m,d] = b.releaseDate.split('-').map(Number); return new Date(y, m-1, d); })() : new Date(0);
           return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
         } else {
           const comp = a.title.localeCompare(b.title);
@@ -3040,7 +3040,7 @@
     const CalendarDay = ({ date, currentMonth, items, onCardClick }) => {
       const today = isToday(date);
       const inMonth = isSameMonth(date, currentMonth);
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
       const shootItems = items.filter((item) => item.shootDate === dateStr && item.type !== 'social');
       const releaseItems = items.filter((item) => item.releaseDate === dateStr && item.type !== 'social');
       const socialItems = items.filter((item) => item.releaseDate === dateStr && item.type === 'social');
