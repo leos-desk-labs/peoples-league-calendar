@@ -1,0 +1,3669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Peoples League | Content Calendar</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23183539'/><rect x='15' y='25' width='70' height='55' rx='8' fill='%23e7ff01'/><rect x='25' y='15' width='8' height='20' rx='4' fill='%23e7ff01'/><rect x='67' y='15' width='8' height='20' rx='4' fill='%23e7ff01'/><rect x='25' y='45' width='12' height='10' rx='2' fill='%23183539'/><rect x='44' y='45' width='12' height='10' rx='2' fill='%23183539'/><rect x='63' y='45' width='12' height='10' rx='2' fill='%23183539'/><rect x='25' y='60' width='12' height='10' rx='2' fill='%23183539'/><rect x='44' y='60' width='12' height='10' rx='2' fill='%23183539'/></svg>" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --pl-lime: #e7ff01;
+      --pl-lime-hover: #d4eb00;
+      --pl-lime-muted: rgba(231, 255, 1, 0.15);
+      --pl-teal: #183539;
+      --pl-teal-light: #264747;
+      --pl-cyan: #52e3d4;
+      --pl-purple: #350097;
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #21262d;
+      --bg-card: #1c2128;
+      --bg-hover: #262c34;
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --border-default: #30363d;
+      --border-muted: #21262d;
+      --status-idea: #8b5cf6;
+      --status-scheduled: #3b82f6;
+      --status-production: #f59e0b;
+      --status-editing: #ec4899;
+      --status-review: #06b6d4;
+      --status-ready: #10b981;
+      --status-published: var(--pl-lime);
+      --type-long: #3b82f6;
+      --type-short: #f59e0b;
+      --type-social: #8b5cf6;
+      --platform-linkedin: #0A66C2;
+      --platform-instagram: #E4405F;
+      --platform-x: #1DA1F2;
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 16px;
+      --space-lg: 24px;
+      --space-xl: 32px;
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --transition-fast: 150ms ease;
+      --transition-base: 200ms ease;
+      --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --sidebar-width: 240px;
+      --header-height: 60px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+    body { font-family: var(--font-family); font-size: 14px; line-height: 1.5; color: var(--text-primary); background-color: var(--bg-primary); min-height: 100vh; }
+    #root { min-height: 100vh; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+    input, textarea, select { font-family: inherit; font-size: inherit; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+    ::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 4px; }
+    :focus-visible { outline: 2px solid var(--pl-lime); outline-offset: 2px; }
+    .app { display: flex; min-height: 100vh; }
+    .main-content { flex: 1; margin-left: var(--sidebar-width); padding-top: var(--header-height); }
+    .page-content { padding: var(--space-lg); }
+
+    /* Auth Page */
+    .auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--bg-primary) 0%, var(--pl-teal) 100%); }
+    .auth-container { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); padding: var(--space-xl); width: 100%; max-width: 400px; }
+    .auth-header { text-align: center; margin-bottom: var(--space-xl); }
+    .auth-header h1 { font-size: 20px; font-weight: 600; color: var(--pl-lime); margin-top: var(--space-md); }
+    .auth-header p { font-size: 13px; color: var(--text-secondary); margin-top: var(--space-xs); }
+    .auth-form { display: flex; flex-direction: column; gap: var(--space-md); }
+    .auth-tabs { display: flex; gap: var(--space-xs); background: var(--bg-tertiary); padding: var(--space-xs); border-radius: var(--radius-md); margin-bottom: var(--space-md); }
+    .auth-tab { flex: 1; padding: var(--space-sm) var(--space-md); border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; color: var(--text-secondary); text-align: center; }
+    .auth-tab:hover { color: var(--text-primary); }
+    .auth-tab.active { background: var(--bg-card); color: var(--text-primary); }
+    .auth-error { background: rgba(248, 81, 73, 0.1); border: 1px solid #f85149; border-radius: var(--radius-md); padding: var(--space-sm) var(--space-md); color: #f85149; font-size: 13px; }
+    .auth-success { background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; border-radius: var(--radius-md); padding: var(--space-sm) var(--space-md); color: #10b981; font-size: 13px; }
+
+    /* Sidebar */
+    .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-width); background: var(--bg-secondary); border-right: 1px solid var(--border-default); display: flex; flex-direction: column; z-index: 200; }
+    .sidebar-brand { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-md); border-bottom: 1px solid var(--border-default); }
+    .sidebar-brand-text { display: flex; flex-direction: column; }
+    .sidebar-brand-name { font-size: 14px; font-weight: 700; color: var(--pl-lime); }
+    .sidebar-brand-tagline { font-size: 11px; color: var(--text-muted); }
+    .sidebar-nav { padding: var(--space-md); display: flex; flex-direction: column; gap: var(--space-xs); }
+    .sidebar-nav-item { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md); color: var(--text-secondary); transition: all var(--transition-fast); width: 100%; text-align: left; }
+    .sidebar-nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+    .sidebar-nav-item.active { background: var(--pl-lime-muted); color: var(--pl-lime); }
+    .sidebar-nav-icon { display: flex; width: 20px; height: 20px; }
+    .sidebar-nav-label { flex: 1; font-size: 14px; font-weight: 500; }
+    .sidebar-nav-count { font-size: 11px; font-weight: 600; background: var(--bg-tertiary); padding: 2px 6px; border-radius: var(--radius-sm); }
+    .sidebar-nav-item.active .sidebar-nav-count { background: var(--pl-lime); color: var(--pl-teal); }
+    .sidebar-add { padding: var(--space-md); padding-top: var(--space-sm); }
+    .sidebar-add-btn { display: flex; align-items: center; justify-content: center; gap: var(--space-sm); width: 100%; padding: var(--space-sm) var(--space-md); background: var(--pl-lime); color: var(--pl-teal); font-size: 14px; font-weight: 600; border-radius: var(--radius-md); transition: all var(--transition-fast); }
+    .sidebar-add-btn:hover { background: var(--pl-lime-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(231, 255, 1, 0.3); }
+    .sidebar-add-btn svg { width: 18px; height: 18px; }
+    .sidebar-section { padding: var(--space-md); margin-top: auto; border-top: 1px solid var(--border-default); }
+    .sidebar-section-title { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-sm); }
+    .sidebar-type-item { display: flex; align-items: center; gap: var(--space-sm); font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; }
+    .sidebar-type-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .sidebar-user { padding: var(--space-md); border-top: 1px solid var(--border-default); }
+    .sidebar-user-info { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm); }
+    .sidebar-user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--pl-lime); color: var(--pl-teal); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; }
+    .sidebar-user-email { flex: 1; font-size: 12px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Header */
+    .header { position: fixed; top: 0; left: var(--sidebar-width); right: 0; height: var(--header-height); background: var(--bg-secondary); border-bottom: 1px solid var(--border-default); display: flex; align-items: center; justify-content: space-between; padding: 0 var(--space-lg); z-index: 100; }
+    .header-left { display: flex; align-items: center; gap: var(--space-lg); }
+    .header-logo { display: flex; align-items: center; gap: var(--space-sm); }
+    .header-title { font-size: 16px; font-weight: 600; }
+    .header-center { flex: 1; display: flex; justify-content: center; max-width: 400px; margin: 0 auto; }
+    .header-search { position: relative; width: 100%; }
+    .header-search-input { width: 100%; padding: 8px 12px 8px 36px; background: var(--bg-tertiary); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-primary); font-size: 14px; transition: all var(--transition-fast); }
+    .header-search-input:focus { border-color: var(--pl-lime); background: var(--bg-secondary); }
+    .header-search-input::placeholder { color: var(--text-muted); }
+    .header-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+    .header-search-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); padding: 4px; color: var(--text-muted); cursor: pointer; border-radius: var(--radius-sm); }
+    .header-search-clear:hover { color: var(--text-primary); background: var(--bg-hover); }
+    .header-right { display: flex; align-items: center; gap: var(--space-sm); }
+
+    /* Buttons */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-sm); font-weight: 500; border-radius: var(--radius-md); transition: all var(--transition-fast); white-space: nowrap; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-sm { padding: var(--space-xs) var(--space-sm); font-size: 13px; }
+    .btn-md { padding: var(--space-sm) var(--space-md); font-size: 14px; }
+    .btn-default { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-default); }
+    .btn-default:hover:not(:disabled) { background: var(--bg-hover); border-color: var(--text-muted); }
+    .btn-primary { background: var(--pl-lime); color: var(--pl-teal); }
+    .btn-primary:hover:not(:disabled) { background: var(--pl-lime-hover); }
+    .btn-ghost { background: transparent; color: var(--text-secondary); }
+    .btn-ghost:hover:not(:disabled) { background: var(--bg-tertiary); color: var(--text-primary); }
+    .btn-danger { background: transparent; color: #f85149; border: 1px solid #f85149; }
+    .btn-danger:hover:not(:disabled) { background: rgba(248, 81, 73, 0.1); }
+
+    /* Badge */
+    .badge { display: inline-flex; align-items: center; font-weight: 500; border-radius: var(--radius-sm); padding: 2px 6px; font-size: 11px; }
+    .badge-type-long { background: rgba(59, 130, 246, 0.15); color: var(--type-long); }
+    .badge-type-short { background: rgba(245, 158, 11, 0.15); color: var(--type-short); }
+    .badge-type-social { background: rgba(139, 92, 246, 0.15); color: var(--type-social); }
+
+    /* Platform badges */
+    .platform-badges { display: flex; gap: 4px; margin-left: auto; }
+    .platform-badge { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: var(--radius-sm); font-size: 9px; font-weight: 700; color: white; }
+    .platform-badge.linkedin { background: var(--platform-linkedin); }
+    .platform-badge.instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
+    .platform-badge.x { background: #000; }
+
+    /* Toast */
+    .toast-container { position: fixed; bottom: var(--space-lg); left: 50%; transform: translateX(-50%); z-index: 2000; display: flex; flex-direction: column; gap: var(--space-sm); }
+    .toast { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-md) var(--space-lg); background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); animation: toastSlideIn 0.3s ease; min-width: 300px; }
+    .toast-message { flex: 1; font-size: 14px; color: var(--text-primary); }
+    .toast-undo { padding: var(--space-xs) var(--space-sm); background: var(--pl-lime); color: var(--pl-teal); font-size: 13px; font-weight: 600; border-radius: var(--radius-sm); transition: all var(--transition-fast); }
+    .toast-undo:hover { background: var(--pl-lime-hover); }
+    .toast-dismiss { padding: var(--space-xs); color: var(--text-muted); transition: color var(--transition-fast); }
+    .toast-dismiss:hover { color: var(--text-primary); }
+    @keyframes toastSlideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    /* Modal */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: var(--space-lg); }
+    .modal { background: var(--bg-secondary); border-radius: var(--radius-lg); border: 1px solid var(--border-default); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4); max-height: calc(100vh - 96px); display: flex; flex-direction: column; width: 100%; max-width: 560px; }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: var(--space-md) var(--space-lg); border-bottom: 1px solid var(--border-default); }
+    .modal-title { font-size: 16px; font-weight: 600; }
+    .modal-body { padding: var(--space-lg); overflow-y: auto; }
+
+    /* Form */
+    .form-group { display: flex; flex-direction: column; gap: var(--space-xs); margin-bottom: var(--space-md); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
+    .form-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+    .form-input, .form-textarea, .form-select { padding: var(--space-sm) var(--space-md); background: var(--bg-tertiary); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-primary); font-size: 14px; }
+    .form-input:focus, .form-textarea:focus, .form-select:focus { outline: none; border-color: var(--pl-lime); }
+    .form-textarea { resize: vertical; min-height: 60px; }
+    .form-type-toggle { display: flex; gap: var(--space-xs); }
+    .form-type-btn { flex: 1; padding: var(--space-sm) var(--space-md); background: var(--bg-tertiary); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 13px; font-weight: 500; }
+    .form-type-btn:hover { border-color: var(--text-muted); }
+    .form-type-btn.active.long { background: rgba(59, 130, 246, 0.15); border-color: var(--type-long); color: var(--type-long); }
+    .form-type-btn.active.short { background: rgba(245, 158, 11, 0.15); border-color: var(--type-short); color: var(--type-short); }
+    .form-type-btn.active.social { background: rgba(139, 92, 246, 0.15); border-color: var(--type-social); color: var(--type-social); }
+    .form-platforms { display: flex; gap: var(--space-sm); }
+    .form-platform-btn { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); background: var(--bg-tertiary); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 14px; transition: all var(--transition-fast); }
+    .form-platform-btn:hover { border-color: var(--text-muted); }
+    .form-platform-btn.active.linkedin { background: rgba(10, 102, 194, 0.15); border-color: var(--platform-linkedin); color: var(--platform-linkedin); }
+    .form-platform-btn.active.instagram { background: rgba(228, 64, 95, 0.15); border-color: #E4405F; color: #E4405F; }
+    .form-platform-btn.active.x { background: rgba(0, 0, 0, 0.15); border-color: #555; color: var(--text-primary); }
+    .form-platform-icon { font-weight: 700; font-size: 12px; }
+    .form-tags { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+    .form-tag { padding: var(--space-xs) var(--space-sm); background: var(--bg-tertiary); border: 1px solid var(--border-default); border-radius: var(--radius-sm); color: var(--text-secondary); font-size: 13px; }
+    .form-tag:hover { border-color: var(--text-muted); }
+    .form-tag.active { background: var(--pl-lime-muted); border-color: var(--pl-lime); color: var(--pl-lime); }
+    .form-tag.add-tag { border-style: dashed; color: var(--text-muted); }
+    .form-tag.add-tag:hover { border-color: var(--pl-lime); color: var(--pl-lime); }
+    .form-tag-add-input { display: flex; align-items: center; gap: var(--space-xs); }
+    .form-tag-input { padding: var(--space-xs) var(--space-sm); background: var(--bg-tertiary); border: 1px solid var(--pl-lime); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 13px; width: 140px; }
+    .form-tag-input:focus { outline: none; }
+    .form-tag-add-btn { padding: var(--space-xs) var(--space-sm); background: var(--pl-lime); border: none; border-radius: var(--radius-sm); color: var(--pl-teal); font-size: 12px; font-weight: 600; cursor: pointer; }
+    .form-tag-add-btn:hover { background: var(--pl-lime-hover); }
+    .form-tag-cancel-btn { padding: var(--space-xs) 6px; background: transparent; border: 1px solid var(--border-default); border-radius: var(--radius-sm); color: var(--text-muted); font-size: 12px; cursor: pointer; }
+    .form-tag-cancel-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+    .form-checkbox { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm); cursor: pointer; }
+    .form-checkbox input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--pl-lime); cursor: pointer; }
+    .form-checkbox-label { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+    .form-checkbox-hint { width: 100%; font-size: 12px; color: var(--text-muted); margin-left: 26px; }
+    .form-actions { display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-md); padding-top: var(--space-md); border-top: 1px solid var(--border-default); }
+    .form-actions-right { display: flex; gap: var(--space-sm); margin-left: auto; }
+
+    /* Pipeline */
+    .pipeline-board { display: flex; flex-direction: column; height: calc(100vh - var(--header-height) - 48px); }
+    .pipeline-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-lg); flex-shrink: 0; }
+    .pipeline-filters { display: flex; gap: var(--space-xs); background: var(--bg-secondary); padding: var(--space-xs); border-radius: var(--radius-md); }
+    .pipeline-filter { padding: var(--space-sm) var(--space-md); border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+    .pipeline-filter:hover { color: var(--text-primary); }
+    .pipeline-filter.active { background: var(--bg-tertiary); color: var(--text-primary); }
+    .pipeline-filter.long.active { background: rgba(59, 130, 246, 0.15); color: var(--type-long); }
+    .pipeline-filter.short.active { background: rgba(245, 158, 11, 0.15); color: var(--type-short); }
+    .pipeline-filter.social.active { background: rgba(139, 92, 246, 0.15); color: var(--type-social); }
+    .pipeline-columns { display: flex; gap: var(--space-md); overflow-x: auto; padding-bottom: var(--space-md); flex: 1; min-height: 0; }
+    .pipeline-column { flex: 0 0 280px; min-width: 280px; background: var(--bg-secondary); border-radius: var(--radius-lg); display: flex; flex-direction: column; max-height: 100%; }
+    .pipeline-column-header { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-md); border-bottom: 1px solid var(--border-default); }
+    .pipeline-column-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .pipeline-column-title { font-size: 13px; font-weight: 600; flex: 1; }
+    .pipeline-column-count { font-size: 11px; font-weight: 600; color: var(--text-muted); background: var(--bg-tertiary); padding: 2px 8px; border-radius: var(--radius-sm); }
+    .pipeline-column-content { padding: var(--space-sm); display: flex; flex-direction: column; gap: var(--space-sm); overflow-y: auto; flex: 1; }
+    .pipeline-empty { text-align: center; padding: var(--space-lg); color: var(--text-muted); font-size: 13px; }
+    .pipeline-card-wrapper { position: relative; cursor: grab; }
+    .pipeline-card-wrapper:active { cursor: grabbing; }
+    .pipeline-card-wrapper.dragging { opacity: 0.4; }
+    .pipeline-card-actions { position: absolute; bottom: var(--space-sm); right: var(--space-sm); display: flex; gap: var(--space-xs); opacity: 0; transition: opacity var(--transition-fast); }
+    .pipeline-card-wrapper:hover .pipeline-card-actions { opacity: 1; }
+    .drag-indicator { height: 3px; background: var(--pl-lime); border-radius: 2px; margin: 2px 0; }
+    .pipeline-drop-zone { min-height: 20px; flex-shrink: 0; }
+    .pipeline-move-btn { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: var(--bg-tertiary); border: 1px solid var(--border-default); border-radius: var(--radius-sm); color: var(--text-secondary); }
+    .pipeline-move-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .pipeline-move-btn.forward:hover { background: var(--pl-lime-muted); color: var(--pl-lime); border-color: var(--pl-lime); }
+
+    /* Drag and Drop */
+    .pipeline-column.drag-over { background: var(--bg-tertiary); border: 2px dashed var(--pl-lime); }
+    .pipeline-column.drag-over .pipeline-column-content { background: var(--pl-lime-muted); }
+    .pipeline-column.drag-invalid { opacity: 0.5; border: 2px dashed var(--border-default); }
+    .pipeline-column.drag-invalid .pipeline-column-content { background: transparent; }
+    .content-card.dragging { opacity: 0.5; transform: rotate(2deg); cursor: grabbing; }
+    .content-card[draggable="true"] { cursor: grab; }
+    .content-card[draggable="true"]:active { cursor: grabbing; }
+    .drag-placeholder { background: var(--pl-lime-muted); border: 2px dashed var(--pl-lime); border-radius: var(--radius-md); min-height: 80px; margin-bottom: var(--space-sm); }
+
+    /* Content Card */
+    .content-card { position: relative; background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: var(--space-md); cursor: pointer; transition: all var(--transition-fast); overflow: hidden; }
+    .content-card:hover { border-color: var(--text-muted); transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); }
+    .content-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-sm); }
+    .content-card-assignee { font-size: 11px; color: var(--text-muted); }
+    .content-card-title { font-size: 14px; font-weight: 600; margin-bottom: var(--space-xs); line-height: 1.3; }
+    .content-card-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: var(--space-sm); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .content-card-footer { display: flex; flex-direction: column; gap: var(--space-sm); }
+    .content-card-dates { display: flex; flex-direction: column; gap: var(--space-xs); }
+    .content-card-date { display: flex; align-items: center; gap: var(--space-xs); font-size: 11px; color: var(--text-muted); }
+    .content-card-date.release { color: var(--pl-lime); }
+    .content-card-date.release.urgent { color: #f85149; font-weight: 600; }
+    .content-card-date.release.warning { color: #f59e0b; font-weight: 500; }
+    .due-warning { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: var(--radius-sm); margin-left: 4px; }
+    .due-warning.urgent { background: rgba(248, 81, 73, 0.15); color: #f85149; }
+    .due-warning.warning { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .due-warning.today { background: rgba(248, 81, 73, 0.25); color: #f85149; animation: pulse-urgent 1.5s ease-in-out infinite; }
+    .due-warning.overdue { background: rgba(248, 81, 73, 0.3); color: #f85149; }
+    @keyframes pulse-urgent { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+    .content-card-tags { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+    .content-card-tag { font-size: 11px; padding: 2px 6px; background: var(--bg-tertiary); border-radius: var(--radius-sm); color: var(--text-secondary); }
+    .content-card-stage-indicator { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+    .content-card-meta { font-size: 10px; color: var(--text-muted); margin-top: var(--space-xs); padding-top: var(--space-xs); border-top: 1px solid var(--border-muted); display: flex; align-items: center; gap: 4px; }
+
+    /* Calendar */
+    .calendar-container { display: flex; flex-direction: column; gap: var(--space-md); }
+    .calendar-view-toggle { display: flex; gap: var(--space-xs); background: var(--bg-secondary); padding: var(--space-xs); border-radius: var(--radius-md); width: fit-content; }
+    .calendar-toggle-btn { padding: var(--space-sm) var(--space-md); border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+    .calendar-toggle-btn:hover { color: var(--text-primary); }
+    .calendar-toggle-btn.active { background: var(--bg-tertiary); color: var(--text-primary); }
+    .month-view { display: flex; flex-direction: column; gap: var(--space-md); }
+    .month-header { display: flex; justify-content: space-between; align-items: center; }
+    .month-nav { display: flex; align-items: center; gap: var(--space-sm); }
+    .month-title { font-size: 20px; font-weight: 600; min-width: 180px; text-align: center; }
+    .month-actions { display: flex; gap: var(--space-sm); }
+    .month-legend { display: flex; gap: var(--space-lg); }
+    .month-legend-item { display: flex; align-items: center; gap: var(--space-xs); font-size: 13px; color: var(--text-secondary); }
+    .month-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .month-legend-dot.shoot { background: var(--type-long); }
+    .month-legend-dot.release { background: var(--pl-lime); }
+    .month-legend-dot.social { background: var(--type-social); }
+    .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border-default); border-radius: var(--radius-lg); overflow: hidden; }
+    .month-weekday { background: var(--bg-tertiary); padding: var(--space-sm); text-align: center; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+    .calendar-day { min-height: 100px; background: var(--bg-secondary); border: 1px solid transparent; padding: var(--space-xs); cursor: pointer; }
+    .calendar-day:hover { background: var(--bg-tertiary); }
+    .calendar-day.outside { opacity: 0.4; }
+    .calendar-day.today { border-color: var(--pl-lime); }
+    .calendar-day.today .calendar-day-number { background: var(--pl-lime); color: var(--pl-teal); }
+    .calendar-day-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-xs); }
+    .calendar-day-number { font-size: 13px; font-weight: 500; color: var(--text-secondary); width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+    .calendar-day-dots { display: flex; gap: 3px; }
+    .calendar-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .calendar-dot.shoot { background: var(--type-long); }
+    .calendar-dot.release { background: var(--pl-lime); }
+    .calendar-dot.social { background: var(--type-social); }
+    .calendar-day-content { display: flex; flex-direction: column; gap: 2px; }
+    .calendar-event { font-size: 11px; padding: 2px 4px; border-radius: var(--radius-sm); display: flex; gap: 4px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .calendar-event.shoot { background: rgba(59, 130, 246, 0.15); color: var(--type-long); }
+    .calendar-event.release { background: var(--pl-lime-muted); color: var(--pl-lime); }
+    .calendar-event.social { background: rgba(139, 92, 246, 0.15); color: var(--type-social); }
+    .calendar-event-label { font-weight: 500; flex-shrink: 0; }
+    .calendar-event-title { overflow: hidden; text-overflow: ellipsis; }
+
+    /* Ideas */
+    .ideas-bank { display: flex; flex-direction: column; gap: var(--space-lg); }
+    .ideas-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .ideas-title { font-size: 20px; font-weight: 600; margin-bottom: var(--space-xs); }
+    .ideas-subtitle { font-size: 13px; color: var(--text-secondary); }
+    .ideas-form { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); padding: var(--space-lg); display: flex; flex-direction: column; gap: var(--space-md); }
+    .ideas-form-row { display: flex; gap: var(--space-md); }
+    .ideas-form-input { flex: 1; padding: var(--space-sm) var(--space-md); background: var(--bg-tertiary); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-primary); font-size: 14px; }
+    .ideas-form-input:focus { outline: none; border-color: var(--pl-lime); }
+    .ideas-form-type { display: flex; gap: var(--space-xs); }
+    .ideas-type-btn { padding: var(--space-sm) var(--space-md); background: var(--bg-tertiary); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 13px; font-weight: 500; }
+    .ideas-type-btn:hover { border-color: var(--text-muted); }
+    .ideas-type-btn.active.long { background: rgba(59, 130, 246, 0.15); border-color: var(--type-long); color: var(--type-long); }
+    .ideas-type-btn.active.short { background: rgba(245, 158, 11, 0.15); border-color: var(--type-short); color: var(--type-short); }
+    .ideas-type-btn.active.social { background: rgba(139, 92, 246, 0.15); border-color: var(--type-social); color: var(--type-social); }
+    .ideas-form-textarea { padding: var(--space-sm) var(--space-md); background: var(--bg-tertiary); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-primary); font-size: 14px; resize: vertical; min-height: 60px; width: 100%; }
+    .ideas-form-textarea:focus { outline: none; border-color: var(--pl-lime); }
+    .ideas-form-tags { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+    .ideas-tag-btn { padding: var(--space-xs) var(--space-sm); background: var(--bg-tertiary); border: 1px solid var(--border-default); border-radius: var(--radius-sm); color: var(--text-secondary); font-size: 13px; }
+    .ideas-tag-btn:hover { border-color: var(--text-muted); }
+    .ideas-tag-btn.active { background: var(--pl-lime-muted); border-color: var(--pl-lime); color: var(--pl-lime); }
+    .ideas-form-actions { display: flex; justify-content: flex-end; gap: var(--space-sm); }
+    .ideas-sections { display: flex; flex-direction: column; gap: var(--space-xl); }
+    .ideas-section-title { display: flex; align-items: center; gap: var(--space-sm); font-size: 14px; font-weight: 600; margin-bottom: var(--space-md); }
+    .ideas-section-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .ideas-section-dot.short { background: var(--type-short); }
+    .ideas-section-dot.long { background: var(--type-long); }
+    .ideas-section-count { font-size: 11px; font-weight: 600; color: var(--text-muted); background: var(--bg-tertiary); padding: 2px 8px; border-radius: var(--radius-sm); margin-left: auto; }
+    .ideas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-md); }
+    .ideas-empty { grid-column: 1 / -1; text-align: center; padding: var(--space-xl); color: var(--text-muted); font-size: 13px; background: var(--bg-secondary); border-radius: var(--radius-lg); border: 1px dashed var(--border-default); }
+    .idea-card { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: var(--space-md); }
+    .idea-card:hover { border-color: var(--text-muted); }
+    .idea-card-header { margin-bottom: var(--space-sm); }
+    .idea-card-title { font-size: 14px; font-weight: 600; margin-bottom: var(--space-xs); }
+    .idea-card-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: var(--space-sm); line-height: 1.4; }
+    .idea-card-tags { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-bottom: var(--space-sm); }
+    .idea-card-tag { font-size: 11px; padding: 2px 6px; background: var(--bg-tertiary); border-radius: var(--radius-sm); color: var(--text-secondary); }
+    .idea-card-actions { display: flex; justify-content: space-between; align-items: center; padding-top: var(--space-sm); border-top: 1px solid var(--border-default); }
+    .idea-card-creator { font-size: 11px; color: var(--text-muted); margin-left: auto; }
+    .idea-card-assignee { font-size: 12px; color: var(--text-secondary); margin-bottom: var(--space-sm); }
+    .idea-card-assignee-label { color: var(--text-muted); }
+    .idea-card-platforms { display: flex; gap: var(--space-xs); margin-bottom: var(--space-sm); }
+    .idea-card-platform { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: var(--radius-sm); color: white; }
+    .idea-card-platform.linkedin { background: var(--platform-linkedin); }
+    .idea-card-platform.instagram { background: var(--platform-instagram); }
+    .idea-card-platform.x { background: var(--platform-x); }
+    .ideas-section-dot.social { background: var(--type-social); }
+
+    /* Loading */
+    .loading-spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border-default); border-radius: 50%; border-top-color: var(--pl-lime); animation: spin 1s ease-in-out infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: var(--space-md); }
+    .loading-page p { color: var(--text-secondary); }
+
+    /* Logo Upload Menu */
+    .logo-container { position: relative; }
+    .logo-menu { position: absolute; top: 100%; left: 0; margin-top: var(--space-xs); background: var(--bg-tertiary); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: var(--space-xs); z-index: 1000; min-width: 140px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); }
+    .logo-menu button { display: block; width: 100%; text-align: left; padding: var(--space-sm) var(--space-md); color: var(--text-primary); font-size: 13px; border-radius: var(--radius-sm); transition: background var(--transition-fast); }
+    .logo-menu button:hover { background: var(--bg-hover); }
+
+    /* Avatar Menu */
+    .avatar-menu { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: var(--space-xs); background: var(--bg-tertiary); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: var(--space-xs); z-index: 1000; min-width: 130px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); }
+    .avatar-menu button { display: block; width: 100%; text-align: left; padding: var(--space-sm) var(--space-md); color: var(--text-primary); font-size: 12px; border-radius: var(--radius-sm); transition: background var(--transition-fast); white-space: nowrap; }
+    .avatar-menu button:hover { background: var(--bg-hover); }
+
+    /* Admin Portal */
+    .admin-portal { padding: var(--space-lg); }
+    .admin-header { margin-bottom: var(--space-xl); }
+    .admin-header h2 { font-size: 20px; font-weight: 600; margin-bottom: var(--space-xs); }
+    .admin-header p { font-size: 13px; color: var(--text-secondary); }
+    .admin-section { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-lg); }
+    .admin-section h3 { font-size: 14px; font-weight: 600; margin-bottom: var(--space-md); color: var(--text-primary); }
+    .admin-form { display: flex; flex-direction: column; gap: var(--space-md); }
+    .admin-empty { font-size: 13px; color: var(--text-muted); }
+    .admin-team-list { display: flex; flex-direction: column; gap: var(--space-sm); }
+    .admin-team-member { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm); background: var(--bg-tertiary); border-radius: var(--radius-md); }
+    .admin-team-email { flex: 1; font-size: 13px; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; }
+    .admin-nav-item { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md); color: var(--text-secondary); transition: all var(--transition-fast); width: 100%; text-align: left; margin-top: var(--space-xs); }
+    .admin-nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+    .admin-nav-item.active { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+    .admin-trash-list { display: flex; flex-direction: column; gap: var(--space-sm); }
+    .admin-trash-item { display: flex; align-items: center; justify-content: space-between; padding: var(--space-sm) var(--space-md); background: var(--bg-tertiary); border-radius: var(--radius-md); }
+    .admin-trash-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+    .admin-trash-info strong { font-size: 13px; font-weight: 500; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .admin-trash-meta { font-size: 11px; color: var(--text-muted); }
+    .admin-trash-actions { display: flex; gap: var(--space-xs); flex-shrink: 0; }
+
+    /* Archive View */
+    .archive-view { }
+    .archive-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-lg); }
+    .archive-title { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+    .archive-subtitle { font-size: 14px; color: var(--text-secondary); }
+    .archive-sort { display: flex; align-items: center; gap: var(--space-sm); }
+    .archive-sort-btn { padding: 6px 12px; font-size: 13px; font-weight: 500; color: var(--text-secondary); background: var(--bg-tertiary); border-radius: var(--radius-md); transition: all var(--transition-fast); }
+    .archive-sort-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
+    .archive-sort-btn.active { color: var(--pl-lime); background: var(--pl-lime-muted); }
+    .archive-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 64px 24px; text-align: center; color: var(--text-secondary); gap: var(--space-md); }
+    .archive-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-md); }
+    .archive-card { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--radius-lg); padding: var(--space-md); cursor: pointer; transition: all var(--transition-fast); }
+    .archive-card:hover { border-color: var(--pl-lime); transform: translateY(-2px); }
+    .archive-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-sm); }
+    .archive-card-date { font-size: 12px; color: var(--text-muted); }
+    .archive-card-title { font-size: 16px; font-weight: 600; margin-bottom: var(--space-xs); }
+    .archive-card-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: var(--space-sm); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .archive-card-tags { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-bottom: var(--space-sm); }
+    .archive-card-meta { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); padding-top: var(--space-sm); border-top: 1px solid var(--border-muted); }
+
+    /* Help Guide - Get Started */
+    .help-guide { height: calc(100vh - var(--header-height) - 48px); display: flex; flex-direction: column; }
+    .help-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-xl); }
+    .help-header h2 { font-size: 24px; font-weight: 600; color: var(--text-primary); }
+    .help-content { flex: 1; overflow-y: auto; padding-right: var(--space-sm); }
+    .help-section-title { font-size: 12px; font-weight: 700; color: var(--pl-lime); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: var(--space-md); margin-top: var(--space-xl); display: flex; align-items: center; gap: var(--space-sm); }
+    .help-section-title::before { content: ''; width: 4px; height: 16px; background: var(--pl-lime); border-radius: 2px; }
+    .help-content .help-section-title:first-child { margin-top: 0; }
+    .help-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-md); }
+    .help-card { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); padding: var(--space-lg); }
+    .help-card-icon { font-size: 28px; margin-bottom: var(--space-sm); }
+    .help-card h4 { font-size: 16px; font-weight: 600; margin-bottom: var(--space-xs); color: var(--text-primary); }
+    .help-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0; }
+    .help-pipeline-visual { display: flex; align-items: center; gap: var(--space-xs); overflow-x: auto; padding: var(--space-sm) 0; flex-wrap: wrap; }
+    .help-pipeline-stage { display: flex; align-items: center; gap: var(--space-xs); background: var(--bg-secondary); border-radius: var(--radius-md); padding: var(--space-sm) var(--space-md); font-size: 12px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; }
+    .help-pipeline-arrow { color: var(--border-default); font-size: 16px; }
+    .help-stage-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .help-steps { display: flex; flex-direction: column; gap: var(--space-md); }
+    .help-step { display: flex; gap: var(--space-md); align-items: flex-start; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); padding: var(--space-md) var(--space-lg); }
+    .help-step-number { width: 28px; height: 28px; background: var(--pl-lime); color: var(--pl-teal); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+    .help-step-content h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; color: var(--text-primary); }
+    .help-step-content p { font-size: 13px; color: var(--text-secondary); margin: 0; }
+    .help-step-content strong { color: var(--text-primary); }
+    .help-shortcuts { display: flex; gap: var(--space-lg); flex-wrap: wrap; }
+    .help-shortcut { display: flex; align-items: center; gap: var(--space-sm); }
+    .help-shortcut-key { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-sm); padding: var(--space-xs) var(--space-sm); font-size: 13px; font-weight: 600; font-family: monospace; color: var(--text-primary); }
+    .help-shortcut-desc { font-size: 13px; color: var(--text-secondary); }
+    .help-tips-box { background: linear-gradient(135deg, var(--pl-teal) 0%, var(--bg-primary) 100%); border: 1px solid var(--pl-teal-light); border-radius: var(--radius-lg); padding: var(--space-lg); margin-top: var(--space-xl); }
+    .help-tips-box h4 { font-size: 14px; font-weight: 600; margin-bottom: var(--space-md); color: var(--text-primary); }
+    .help-tips-box ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-sm); }
+    .help-tips-box li { font-size: 13px; color: var(--text-secondary); padding-left: var(--space-lg); position: relative; }
+    .help-tips-box li::before { content: '→'; position: absolute; left: 0; color: var(--pl-lime); }
+    .help-btn { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md); color: var(--text-secondary); transition: all var(--transition-fast); width: 100%; text-align: left; font-size: 13px; }
+    .help-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+    /* Activity Log */
+    .activity-log { display: flex; flex-direction: column; gap: var(--space-lg); }
+    .activity-log-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .activity-log-header h2 { font-size: 20px; font-weight: 600; margin-bottom: var(--space-xs); }
+    .activity-log-header p { font-size: 13px; color: var(--text-secondary); }
+    .activity-log-list { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); overflow: hidden; }
+    .activity-log-empty { padding: var(--space-xl); text-align: center; color: var(--text-muted); font-size: 13px; }
+    .activity-log-item { display: flex; gap: var(--space-md); padding: var(--space-md) var(--space-lg); border-bottom: 1px solid var(--border-default); }
+    .activity-log-item:last-child { border-bottom: none; }
+    .activity-log-item:hover { background: var(--bg-tertiary); }
+    .activity-log-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; }
+    .activity-log-icon.add { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .activity-log-icon.edit { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+    .activity-log-icon.delete { background: rgba(248, 81, 73, 0.15); color: #f85149; }
+    .activity-log-icon.move { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+    .activity-log-icon.promote { background: rgba(231, 255, 1, 0.15); color: var(--pl-lime); }
+    .activity-log-icon.restore { background: rgba(6, 182, 212, 0.15); color: #06b6d4; }
+    .activity-log-content { flex: 1; min-width: 0; }
+    .activity-log-action { font-size: 14px; color: var(--text-primary); margin-bottom: 2px; }
+    .activity-log-action strong { font-weight: 600; }
+    .activity-log-meta { display: flex; gap: var(--space-md); font-size: 12px; color: var(--text-muted); }
+    .activity-log-user { color: var(--text-secondary); }
+    .activity-log-time { color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef, createContext, useContext } = React;
+
+    // Supabase Configuration
+    const SUPABASE_URL = 'https://ycqysghmfdwohjjvxgyv.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljcXlzZ2htZmR3b2hqanZ4Z3l2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwMTU4MTYsImV4cCI6MjA4MzU5MTgxNn0.DHpIQx2eK9Q55pGOrNOgB5T-A7nkKe370qOE-oBm89w';
+
+    // Create Supabase client with persistent local storage for 7-day sessions
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        persistSession: true,
+        storageKey: 'pl-auth-token',
+        storage: window.localStorage,
+        autoRefreshToken: true,
+        detectSessionInUrl: false,
+      }
+    });
+
+    // Session expiry check - 7 days (in milliseconds)
+    const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000;
+
+    // Email notification service
+    const sendNotification = async ({ type, recipientEmail, recipientName, contentTitle, contentType, shootDate, releaseDate, assignerName }) => {
+      try {
+        const { data, error } = await supabase.functions.invoke('send-notification', {
+          body: { type, recipientEmail, recipientName, contentTitle, contentType, shootDate, releaseDate, assignerName }
+        });
+        if (error) throw error;
+        return { success: true, data };
+      } catch (error) {
+        console.error('Failed to send notification:', error);
+        return { success: false, error };
+      }
+    };
+
+    // Auth Context
+    const AuthContext = createContext(null);
+
+    function useAuth() {
+      return useContext(AuthContext);
+    }
+
+
+    // Profile Pictures Context - stores user profile pics in Supabase Storage
+    const ProfilePicsContext = createContext(null);
+
+    function useProfilePics() {
+      return useContext(ProfilePicsContext);
+    }
+
+    function ProfilePicsProvider({ children }) {
+      const [profilePics, setProfilePics] = useState({});
+      const [loading, setLoading] = useState(true);
+
+      // Load all profile pics from Supabase on mount
+      useEffect(() => {
+        // Delay loading to ensure supabase is ready
+        const timer = setTimeout(() => {
+          loadAllProfilePics();
+        }, 500);
+        return () => clearTimeout(timer);
+      }, []);
+
+      const loadAllProfilePics = async () => {
+        try {
+          // Check if supabase storage is available
+          if (!supabase?.storage) {
+            console.warn('Supabase storage not available');
+            setLoading(false);
+            return;
+          }
+
+          // List all files in the profile-pics bucket
+          const { data: files, error } = await supabase.storage
+            .from('profile-pics')
+            .list('', { limit: 100 });
+
+          if (error) {
+            // Don't break the app if storage isn't set up yet
+            console.warn('Profile pics storage not available:', error.message);
+            setLoading(false);
+            return;
+          }
+
+          // Get public URLs for each file
+          const pics = {};
+          for (const file of files || []) {
+            if (file.name && !file.name.startsWith('.')) {
+              const { data } = supabase.storage
+                .from('profile-pics')
+                .getPublicUrl(file.name);
+              // Extract email from filename (filename is email with @ replaced by _at_)
+              const email = file.name.replace('.jpg', '').replace('_at_', '@');
+              pics[email] = data.publicUrl + '?t=' + Date.now(); // Cache bust
+            }
+          }
+          setProfilePics(pics);
+        } catch (err) {
+          console.warn('Error loading profile pics:', err);
+        }
+        setLoading(false);
+      };
+
+      const uploadProfilePic = async (email, file) => {
+        try {
+          // Create a safe filename from email
+          const fileName = email.replace('@', '_at_') + '.jpg';
+
+          // Upload to Supabase Storage
+          const { data, error } = await supabase.storage
+            .from('profile-pics')
+            .upload(fileName, file, {
+              cacheControl: '3600',
+              upsert: true // Overwrite if exists
+            });
+
+          if (error) throw error;
+
+          // Get the public URL
+          const { data: urlData } = supabase.storage
+            .from('profile-pics')
+            .getPublicUrl(fileName);
+
+          const publicUrl = urlData.publicUrl + '?t=' + Date.now();
+
+          // Update local state
+          setProfilePics(prev => ({ ...prev, [email]: publicUrl }));
+
+          return publicUrl;
+        } catch (err) {
+          console.error('Error uploading profile pic:', err);
+          throw new Error('Failed to upload profile picture');
+        }
+      };
+
+      const getProfilePic = (email) => {
+        return profilePics[email] || null;
+      };
+
+      const clearProfilePic = async (email) => {
+        try {
+          const fileName = email.replace('@', '_at_') + '.jpg';
+          await supabase.storage
+            .from('profile-pics')
+            .remove([fileName]);
+
+          setProfilePics(prev => {
+            const updated = { ...prev };
+            delete updated[email];
+            return updated;
+          });
+        } catch (err) {
+          console.warn('Error clearing profile pic:', err);
+        }
+      };
+
+      return (
+        <ProfilePicsContext.Provider value={{ profilePics, uploadProfilePic, getProfilePic, clearProfilePic, loading, refreshPics: loadAllProfilePics }}>
+          {children}
+        </ProfilePicsContext.Provider>
+      );
+    }
+
+    // Read Status Context - tracks what each user has seen
+    const ReadStatusContext = createContext(null);
+
+    function useReadStatus() {
+      return useContext(ReadStatusContext);
+    }
+
+    function ReadStatusProvider({ children }) {
+      // Store read timestamps per user: { "user@email.com": { lastViewedPipeline: timestamp, lastViewedIdeas: timestamp, readContentIds: [], readIdeaIds: [] } }
+      const [readStatus, setReadStatus] = useState(() => {
+        try {
+          return JSON.parse(localStorage.getItem('pl-read-status') || '{}');
+        } catch {
+          return {};
+        }
+      });
+
+      useEffect(() => {
+        try {
+          localStorage.setItem('pl-read-status', JSON.stringify(readStatus));
+        } catch (err) {
+          console.warn('Error saving read status:', err);
+        }
+      }, [readStatus]);
+
+      const getUserStatus = (email) => {
+        if (!email) return { readContentIds: [], readIdeaIds: [], lastViewedPipeline: 0, lastViewedIdeas: 0 };
+        return readStatus[email] || { readContentIds: [], readIdeaIds: [], lastViewedPipeline: 0, lastViewedIdeas: 0 };
+      };
+
+      const markContentRead = (email, contentIds) => {
+        if (!email) return;
+        setReadStatus(prev => {
+          const userStatus = prev[email] || { readContentIds: [], readIdeaIds: [], lastViewedPipeline: 0, lastViewedIdeas: 0 };
+          const newReadIds = [...new Set([...userStatus.readContentIds, ...contentIds])];
+          return {
+            ...prev,
+            [email]: {
+              ...userStatus,
+              readContentIds: newReadIds,
+              lastViewedPipeline: Date.now()
+            }
+          };
+        });
+      };
+
+      const markIdeasRead = (email, ideaIds) => {
+        if (!email) return;
+        setReadStatus(prev => {
+          const userStatus = prev[email] || { readContentIds: [], readIdeaIds: [], lastViewedPipeline: 0, lastViewedIdeas: 0 };
+          const newReadIds = [...new Set([...userStatus.readIdeaIds, ...ideaIds])];
+          return {
+            ...prev,
+            [email]: {
+              ...userStatus,
+              readIdeaIds: newReadIds,
+              lastViewedIdeas: Date.now()
+            }
+          };
+        });
+      };
+
+      const getUnreadContentCount = (email, content) => {
+        if (!email || !content) return 0;
+        const userStatus = getUserStatus(email);
+        // Count content items that are NOT in the user's read list and are not published
+        return content.filter(c =>
+          c.stage !== 'published' &&
+          !userStatus.readContentIds.includes(c.id)
+        ).length;
+      };
+
+      const getUnreadIdeasCount = (email, ideas) => {
+        if (!email || !ideas) return 0;
+        const userStatus = getUserStatus(email);
+        return ideas.filter(idea => !userStatus.readIdeaIds.includes(idea.id)).length;
+      };
+
+      return (
+        <ReadStatusContext.Provider value={{
+          getUserStatus,
+          markContentRead,
+          markIdeasRead,
+          getUnreadContentCount,
+          getUnreadIdeasCount
+        }}>
+          {children}
+        </ReadStatusContext.Provider>
+      );
+    }
+
+    // Admin emails - add your admin email(s) here
+    // UPDATE THIS WITH YOUR EMAIL
+    const ADMIN_EMAILS = ['clay@thepeoplesleague.golf'];
+
+    function AuthProvider({ children }) {
+      const [user, setUser] = useState(null);
+      const [loading, setLoading] = useState(true);
+
+      useEffect(() => {
+        // Check active session and verify it hasn't expired (7 days)
+        const checkSession = async () => {
+          const { data: { session } } = await supabase.auth.getSession();
+
+          if (session) {
+            // Check if login timestamp exists and is within 7 days
+            const loginTime = localStorage.getItem('pl-login-timestamp');
+            const now = Date.now();
+
+            if (loginTime && (now - parseInt(loginTime)) > SESSION_DURATION) {
+              // Session expired after 7 days - sign out
+              await supabase.auth.signOut();
+              localStorage.removeItem('pl-login-timestamp');
+              setUser(null);
+            } else {
+              setUser(session.user);
+            }
+          } else {
+            setUser(null);
+          }
+          setLoading(false);
+        };
+
+        checkSession();
+
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+          if (_event === 'SIGNED_OUT') {
+            localStorage.removeItem('pl-login-timestamp');
+          }
+          setUser(session?.user ?? null);
+        });
+
+        return () => subscription.unsubscribe();
+      }, []);
+
+      // Send OTP code to email
+      const sendOTP = async (email) => {
+        const { data, error } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            shouldCreateUser: true, // Allow anyone to sign in - they'll be auto-registered
+          }
+        });
+        return { data, error };
+      };
+
+      // Verify OTP code
+      const verifyOTP = async (email, token) => {
+        const { data, error } = await supabase.auth.verifyOtp({
+          email,
+          token,
+          type: 'email'
+        });
+        if (!error && data.session) {
+          // Store login timestamp for 7-day session tracking
+          localStorage.setItem('pl-login-timestamp', Date.now().toString());
+          // Auto-register user in team_members table
+          const displayName = email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1).toLowerCase();
+          await supabase.from('team_members').upsert({
+            email: email.toLowerCase(),
+            display_name: displayName,
+            last_seen: new Date().toISOString(),
+          }, { onConflict: 'email' });
+        }
+        return { data, error };
+      };
+
+      // Admin function to create new user (sends them an invite)
+      const inviteUser = async (email) => {
+        const { data, error } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            shouldCreateUser: true, // Create user if doesn't exist
+          }
+        });
+        return { data, error };
+      };
+
+      const signOut = async () => {
+        localStorage.removeItem('pl-login-timestamp');
+        const { error } = await supabase.auth.signOut();
+        return { error };
+      };
+
+      const isAdmin = user ? ADMIN_EMAILS.includes(user.email?.toLowerCase()) : false;
+
+      return (
+        <AuthContext.Provider value={{ user, loading, sendOTP, verifyOTP, inviteUser, signOut, isAdmin }}>
+          {children}
+        </AuthContext.Provider>
+      );
+    }
+
+    // Data
+    const LONG_FORM_STAGES = [
+      { id: 'scheduled-shoot', label: 'Shoot Scheduled', color: '#3b82f6' },
+      { id: 'production', label: 'In Production', color: '#f59e0b' },
+      { id: 'editing', label: 'Editing', color: '#ec4899' },
+      { id: 'review', label: 'Review', color: '#06b6d4' },
+      { id: 'scheduled-release', label: 'Scheduled', color: '#10b981' },
+      { id: 'published', label: 'Published', color: '#D4FF00' },
+    ];
+
+    const SHORT_FORM_STAGES = [
+      { id: 'planning', label: 'Planning', color: '#8b5cf6' },
+      { id: 'shoot', label: 'Shoot', color: '#3b82f6' },
+      { id: 'edit', label: 'Edit', color: '#ec4899' },
+      { id: 'scheduled', label: 'Scheduled', color: '#10b981' },
+      { id: 'published', label: 'Published', color: '#D4FF00' },
+    ];
+
+    const SOCIAL_STAGES = [
+      { id: 'social-draft', label: 'Draft', color: '#8b5cf6' },
+      { id: 'social-design', label: 'Design', color: '#f59e0b' },
+      { id: 'social-review', label: 'Review', color: '#06b6d4' },
+      { id: 'social-scheduled', label: 'Scheduled', color: '#10b981' },
+      { id: 'social-published', label: 'Published', color: '#D4FF00' },
+    ];
+
+    const SOCIAL_PLATFORMS = [
+      { id: 'linkedin', label: 'LinkedIn', color: '#0A66C2', icon: 'in' },
+      { id: 'instagram', label: 'Instagram', color: '#E4405F', icon: 'ig' },
+      { id: 'x', label: 'X', color: '#000000', icon: 'x' },
+    ];
+
+    const DEFAULT_TAGS = [
+      // Tour Events
+      'Tour Event 1 - Whirlwind',
+      'Tour Event 2 - Tahoe',
+      'Tour Event 3 - French Lick',
+      'Tour Event 4 - Lake of Isles',
+      'Peoples League Championship 2025',
+      // Teams
+      'Team Luke',
+      'Team Canada',
+      'Team Birdie Fever',
+      'Team Top Dawgs',
+      'Team King & Queens',
+      'Team Twisted',
+      'Team Cruz',
+      'Team PB&J',
+      'Team Stix',
+      // Sponsors
+      'DraftKings',
+      'The Grint',
+      // Other
+      'ETC',
+    ];
+
+    const initialData = {
+      content: [
+        { id: '1', title: 'Season 3 Kickoff Tournament', description: 'Full tournament coverage with all matches and post-round interviews', type: 'long-form', stage: 'editing', shootDate: '2025-01-10', releaseDate: '2025-01-17', assignee: 'Clay', tags: ['tournament', 'highlights'], notes: 'Need drone footage from hole 7' },
+        { id: '2', title: 'Pro Tips: Reading Greens', description: 'Quick tutorial on reading breaks and grain', type: 'short-form', stage: 'scheduled', shootDate: '2025-01-08', releaseDate: '2025-01-14', assignee: 'Clay', tags: ['tutorial'], notes: '' },
+        { id: '3', title: 'Match Day 4 Hype', description: 'Quick matchup preview for upcoming competition', type: 'short-form', stage: 'edit', shootDate: '2025-01-12', releaseDate: '2025-01-15', assignee: '', tags: ['promo'], notes: '' },
+        { id: '4', title: 'Player Profile: Guest Pro', description: 'Interview and behind-the-scenes with special guest', type: 'long-form', stage: 'scheduled-shoot', shootDate: '2025-01-20', releaseDate: '2025-01-28', assignee: 'Clay', tags: ['interview', 'behind-scenes'], notes: 'Confirm location by Jan 15' },
+      ],
+      ideas: [
+        { id: 'idea-1', title: "Player mic'd up series", description: 'Hot mic moments from tournament play', type: 'short-form', tags: ['behind-scenes'] },
+        { id: 'idea-2', title: 'Course flyover series', description: 'Drone footage of each hole with strategy breakdown', type: 'long-form', tags: ['tutorial'] },
+        { id: 'idea-3', title: 'Shot of the week', description: 'Weekly compilation of best shots', type: 'short-form', tags: ['highlights'] },
+      ],
+      team: ['Clay'],
+      deletedContent: [], // Trash bin for deleted content - auto-purges after 30 days
+    };
+
+    // Hooks
+    function useLocalStorage(key, initialValue) {
+      const [storedValue, setStoredValue] = useState(() => {
+        try {
+          const item = window.localStorage.getItem(key);
+          return item ? JSON.parse(item) : initialValue;
+        } catch (error) {
+          return initialValue;
+        }
+      });
+
+      useEffect(() => {
+        try {
+          window.localStorage.setItem(key, JSON.stringify(storedValue));
+        } catch (error) {
+          console.warn('Error saving to localStorage:', error);
+        }
+      }, [key, storedValue]);
+
+      return [storedValue, setStoredValue];
+    }
+
+    // Activity Log - records all user actions (Supabase-backed)
+    const ActivityLogContext = createContext(null);
+
+    function useActivityLog() {
+      return useContext(ActivityLogContext);
+    }
+
+    function ActivityLogProvider({ children }) {
+      const [logs, setLogs] = useState([]);
+      const [loading, setLoading] = useState(true);
+
+      // Fetch logs from Supabase on mount
+      useEffect(() => {
+        const fetchLogs = async () => {
+          const { data, error } = await supabase
+            .from('activity_log')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(500);
+          if (!error && data) {
+            setLogs(data.map(log => ({
+              id: log.id,
+              action: log.action,
+              details: log.details,
+              user: log.user_name,
+              timestamp: log.created_at,
+            })));
+          }
+          setLoading(false);
+        };
+        fetchLogs();
+
+        // Subscribe to realtime changes
+        const channel = supabase
+          .channel('activity_log_changes')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activity_log' }, (payload) => {
+            const newLog = {
+              id: payload.new.id,
+              action: payload.new.action,
+              details: payload.new.details,
+              user: payload.new.user_name,
+              timestamp: payload.new.created_at,
+            };
+            setLogs(prev => [newLog, ...prev].slice(0, 500));
+          })
+          .subscribe();
+
+        return () => { supabase.removeChannel(channel); };
+      }, []);
+
+      const addLog = async (action, details, userName) => {
+        await supabase.from('activity_log').insert({
+          action,
+          details,
+          user_name: userName || 'Unknown',
+        });
+      };
+
+      const clearLogs = async () => {
+        await supabase.from('activity_log').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        setLogs([]);
+      };
+
+      return (
+        <ActivityLogContext.Provider value={{ logs, addLog, clearLogs, loading }}>
+          {children}
+        </ActivityLogContext.Provider>
+      );
+    }
+
+    // Content Store - Supabase-backed with realtime sync
+    function useContentStore() {
+      const { user } = useAuth();
+      const [content, setContent] = useState([]);
+      const [ideas, setIdeas] = useState([]);
+      const [deletedContent, setDeletedContent] = useState([]);
+      const [teamMembers, setTeamMembers] = useState([]);
+      const [customTags, setCustomTags] = useState([]);
+      const [loading, setLoading] = useState(true);
+
+      // Helper to convert DB row to app format
+      const dbToContent = (row) => ({
+        id: row.id,
+        title: row.title,
+        description: row.description || '',
+        type: row.type,
+        stage: row.stage,
+        position: row.position ?? 0,
+        shootDate: row.shoot_date || '',
+        releaseDate: row.release_date || '',
+        assignee: row.assignee || '',
+        tags: row.tags || [],
+        notes: row.notes || '',
+        platforms: row.platforms || [],
+        createdBy: row.created_by,
+        createdAt: row.created_at,
+        updatedBy: row.updated_by,
+        updatedAt: row.updated_at,
+      });
+
+      const dbToIdea = (row) => ({
+        id: row.id,
+        title: row.title,
+        description: row.description || '',
+        type: row.type,
+        tags: row.tags || [],
+        assignee: row.assignee || '',
+        notes: row.notes || '',
+        platforms: row.platforms || [],
+        createdBy: row.created_by,
+        createdAt: row.created_at,
+        updatedBy: row.updated_by,
+        updatedAt: row.updated_at,
+      });
+
+      const dbToDeleted = (row) => ({
+        ...dbToContent(row),
+        deletedBy: row.deleted_by,
+        deletedAt: row.deleted_at,
+      });
+
+      // Fetch all data on mount
+      useEffect(() => {
+        const fetchAll = async () => {
+          const [contentRes, ideasRes, deletedRes, teamRes, tagsRes] = await Promise.all([
+            supabase.from('content').select('*').order('created_at', { ascending: false }),
+            supabase.from('ideas').select('*').order('created_at', { ascending: false }),
+            supabase.from('deleted_content').select('*').order('deleted_at', { ascending: false }),
+            supabase.from('team_members').select('*').order('display_name', { ascending: true }),
+            supabase.from('custom_tags').select('*').order('name', { ascending: true }),
+          ]);
+          if (contentRes.data) setContent(contentRes.data.map(dbToContent));
+          if (ideasRes.data) setIdeas(ideasRes.data.map(dbToIdea));
+          if (deletedRes.data) setDeletedContent(deletedRes.data.map(dbToDeleted));
+          if (teamRes.data) setTeamMembers(teamRes.data);
+          if (tagsRes.data) setCustomTags(tagsRes.data.map(t => t.name));
+          setLoading(false);
+        };
+        fetchAll();
+
+        // Realtime subscriptions
+        const contentChannel = supabase
+          .channel('content_changes')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'content' }, (payload) => {
+            if (payload.eventType === 'INSERT') {
+              // Only add if not already present (avoid duplicates from optimistic updates)
+              setContent(prev => {
+                if (prev.some(item => item.id === payload.new.id)) {
+                  return prev; // Already exists, skip
+                }
+                return [dbToContent(payload.new), ...prev];
+              });
+            } else if (payload.eventType === 'UPDATE') {
+              setContent(prev => prev.map(item => item.id === payload.new.id ? dbToContent(payload.new) : item));
+            } else if (payload.eventType === 'DELETE') {
+              setContent(prev => prev.filter(item => item.id !== payload.old.id));
+            }
+          })
+          .subscribe();
+
+        const ideasChannel = supabase
+          .channel('ideas_changes')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'ideas' }, (payload) => {
+            if (payload.eventType === 'INSERT') {
+              // Only add if not already present (avoid duplicates from optimistic updates)
+              setIdeas(prev => {
+                if (prev.some(item => item.id === payload.new.id)) {
+                  return prev;
+                }
+                return [dbToIdea(payload.new), ...prev];
+              });
+            } else if (payload.eventType === 'UPDATE') {
+              setIdeas(prev => prev.map(item => item.id === payload.new.id ? dbToIdea(payload.new) : item));
+            } else if (payload.eventType === 'DELETE') {
+              setIdeas(prev => prev.filter(item => item.id !== payload.old.id));
+            }
+          })
+          .subscribe();
+
+        const deletedChannel = supabase
+          .channel('deleted_changes')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'deleted_content' }, (payload) => {
+            if (payload.eventType === 'INSERT') {
+              // Only add if not already present (avoid duplicates from optimistic updates)
+              setDeletedContent(prev => {
+                if (prev.some(item => item.id === payload.new.id)) {
+                  return prev;
+                }
+                return [dbToDeleted(payload.new), ...prev];
+              });
+            } else if (payload.eventType === 'DELETE') {
+              setDeletedContent(prev => prev.filter(item => item.id !== payload.old.id));
+            }
+          })
+          .subscribe();
+
+        return () => {
+          supabase.removeChannel(contentChannel);
+          supabase.removeChannel(ideasChannel);
+          supabase.removeChannel(deletedChannel);
+        };
+      }, []);
+
+      const addContent = async (contentData) => {
+        // Generate optimistic ID
+        const optimisticId = crypto.randomUUID();
+        const now = new Date().toISOString();
+        const optimisticContent = {
+          id: optimisticId,
+          title: contentData.title,
+          description: contentData.description || '',
+          type: contentData.type,
+          stage: contentData.stage,
+          shootDate: contentData.shootDate || '',
+          releaseDate: contentData.releaseDate || '',
+          assignee: contentData.assignee || '',
+          tags: contentData.tags || [],
+          notes: contentData.notes || '',
+          platforms: contentData.platforms || [],
+          createdBy: user?.email || 'Unknown',
+          createdAt: now,
+          updatedBy: user?.email || 'Unknown',
+          updatedAt: now,
+        };
+
+        // Optimistically add to state
+        setContent(prev => [optimisticContent, ...prev]);
+
+        // Make API call
+        const dbContent = {
+          title: contentData.title,
+          description: contentData.description || '',
+          type: contentData.type,
+          stage: contentData.stage,
+          shoot_date: contentData.shootDate || null,
+          release_date: contentData.releaseDate || null,
+          assignee: contentData.assignee || '',
+          tags: contentData.tags || [],
+          notes: contentData.notes || '',
+          platforms: contentData.platforms || [],
+          created_by: user?.email || 'Unknown',
+          updated_by: user?.email || 'Unknown',
+        };
+        const { data, error } = await supabase.from('content').insert(dbContent).select().single();
+
+        if (error) {
+          // Revert on error
+          setContent(prev => prev.filter(item => item.id !== optimisticId));
+          console.error('Failed to add content:', error);
+          return null;
+        }
+
+        // Replace optimistic item with real one (realtime will handle this, but ensure consistency)
+        setContent(prev => prev.map(item => item.id === optimisticId ? dbToContent(data) : item));
+        return dbToContent(data);
+      };
+
+      const updateContent = async (id, updates) => {
+        // Store previous state for rollback
+        const previousContent = content.find(item => item.id === id);
+        if (!previousContent) return;
+
+        // Optimistically update state
+        const optimisticUpdates = {
+          ...(updates.title !== undefined && { title: updates.title }),
+          ...(updates.description !== undefined && { description: updates.description }),
+          ...(updates.type !== undefined && { type: updates.type }),
+          ...(updates.stage !== undefined && { stage: updates.stage }),
+          ...(updates.shootDate !== undefined && { shootDate: updates.shootDate }),
+          ...(updates.releaseDate !== undefined && { releaseDate: updates.releaseDate }),
+          ...(updates.assignee !== undefined && { assignee: updates.assignee }),
+          ...(updates.tags !== undefined && { tags: updates.tags }),
+          ...(updates.notes !== undefined && { notes: updates.notes }),
+          ...(updates.platforms !== undefined && { platforms: updates.platforms }),
+          ...(updates.position !== undefined && { position: updates.position }),
+          updatedBy: user?.email || 'Unknown',
+          updatedAt: new Date().toISOString(),
+        };
+        setContent(prev => prev.map(item => item.id === id ? { ...item, ...optimisticUpdates } : item));
+
+        // Make API call
+        const dbUpdates = {
+          ...(updates.title !== undefined && { title: updates.title }),
+          ...(updates.description !== undefined && { description: updates.description }),
+          ...(updates.type !== undefined && { type: updates.type }),
+          ...(updates.stage !== undefined && { stage: updates.stage }),
+          ...(updates.position !== undefined && { position: updates.position }),
+          ...(updates.shootDate !== undefined && { shoot_date: updates.shootDate || null }),
+          ...(updates.releaseDate !== undefined && { release_date: updates.releaseDate || null }),
+          ...(updates.assignee !== undefined && { assignee: updates.assignee }),
+          ...(updates.tags !== undefined && { tags: updates.tags }),
+          ...(updates.notes !== undefined && { notes: updates.notes }),
+          ...(updates.platforms !== undefined && { platforms: updates.platforms }),
+          updated_by: user?.email || 'Unknown',
+          updated_at: new Date().toISOString(),
+        };
+        const { error } = await supabase.from('content').update(dbUpdates).eq('id', id);
+
+        if (error) {
+          // Revert on error
+          setContent(prev => prev.map(item => item.id === id ? previousContent : item));
+          console.error('Failed to update content:', error);
+        }
+      };
+
+      const deleteContent = async (id) => {
+        const itemToDelete = content.find((item) => item.id === id);
+        if (!itemToDelete) return;
+
+        // Optimistically remove from content and add to deleted
+        setContent(prev => prev.filter(item => item.id !== id));
+        const deletedItem = { ...itemToDelete, deletedBy: user?.email || 'Unknown', deletedAt: new Date().toISOString() };
+        setDeletedContent(prev => [deletedItem, ...prev]);
+
+        // Insert into deleted_content
+        const { error: insertError } = await supabase.from('deleted_content').insert({
+          id: itemToDelete.id,
+          title: itemToDelete.title,
+          description: itemToDelete.description,
+          type: itemToDelete.type,
+          stage: itemToDelete.stage,
+          shoot_date: itemToDelete.shootDate || null,
+          release_date: itemToDelete.releaseDate || null,
+          assignee: itemToDelete.assignee,
+          tags: itemToDelete.tags,
+          notes: itemToDelete.notes,
+          platforms: itemToDelete.platforms || [],
+          created_by: itemToDelete.createdBy,
+          created_at: itemToDelete.createdAt,
+          updated_by: itemToDelete.updatedBy,
+          updated_at: itemToDelete.updatedAt,
+          deleted_by: user?.email || 'Unknown',
+        });
+
+        if (insertError) {
+          // Revert on error
+          setContent(prev => [itemToDelete, ...prev]);
+          setDeletedContent(prev => prev.filter(item => item.id !== id));
+          console.error('Failed to delete content:', insertError);
+          return;
+        }
+
+        // Delete from content
+        const { error: deleteError } = await supabase.from('content').delete().eq('id', id);
+        if (deleteError) {
+          console.error('Failed to remove from content table:', deleteError);
+        }
+      };
+
+      const restoreContent = async (id) => {
+        const itemToRestore = deletedContent.find((item) => item.id === id);
+        if (!itemToRestore) return;
+
+        // Optimistically restore
+        setDeletedContent(prev => prev.filter(item => item.id !== id));
+        const restoredItem = { ...itemToRestore, updatedBy: user?.email || 'Unknown', updatedAt: new Date().toISOString() };
+        delete restoredItem.deletedBy;
+        delete restoredItem.deletedAt;
+        setContent(prev => [restoredItem, ...prev]);
+
+        // Insert back into content
+        const { error: insertError } = await supabase.from('content').insert({
+          id: itemToRestore.id,
+          title: itemToRestore.title,
+          description: itemToRestore.description,
+          type: itemToRestore.type,
+          stage: itemToRestore.stage,
+          shoot_date: itemToRestore.shootDate || null,
+          release_date: itemToRestore.releaseDate || null,
+          assignee: itemToRestore.assignee,
+          tags: itemToRestore.tags,
+          notes: itemToRestore.notes,
+          platforms: itemToRestore.platforms || [],
+          created_by: itemToRestore.createdBy,
+          created_at: itemToRestore.createdAt,
+          updated_by: user?.email || 'Unknown',
+          updated_at: new Date().toISOString(),
+        });
+
+        if (insertError) {
+          // Revert on error
+          setDeletedContent(prev => [itemToRestore, ...prev]);
+          setContent(prev => prev.filter(item => item.id !== id));
+          console.error('Failed to restore content:', insertError);
+          return;
+        }
+
+        // Delete from deleted_content
+        await supabase.from('deleted_content').delete().eq('id', id);
+      };
+
+      const permanentlyDeleteContent = async (id) => {
+        await supabase.from('deleted_content').delete().eq('id', id);
+      };
+
+      const emptyTrash = async () => {
+        await supabase.from('deleted_content').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        setDeletedContent([]);
+      };
+
+      const purgeOldDeletedContent = async () => {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        await supabase.from('deleted_content').delete().lt('deleted_at', thirtyDaysAgo.toISOString());
+      };
+
+      const moveContent = async (id, newStage, newPosition = null) => {
+        const updates = { stage: newStage };
+        if (newPosition !== null) {
+          updates.position = newPosition;
+        }
+        await updateContent(id, updates);
+      };
+
+      const reorderContent = async (itemId, newPosition, stageItems) => {
+        // Optimistically reorder
+        const updatedItems = [...stageItems];
+        const draggedIndex = updatedItems.findIndex(item => item.id === itemId);
+        if (draggedIndex === -1) return;
+
+        const [draggedItem] = updatedItems.splice(draggedIndex, 1);
+        updatedItems.splice(newPosition, 0, draggedItem);
+
+        // Update positions for all affected items
+        const updates = updatedItems.map((item, index) => ({
+          id: item.id,
+          position: index,
+        }));
+
+        // Optimistically update local state
+        setContent(prev => {
+          const newContent = [...prev];
+          updates.forEach(update => {
+            const idx = newContent.findIndex(c => c.id === update.id);
+            if (idx !== -1) {
+              newContent[idx] = { ...newContent[idx], position: update.position };
+            }
+          });
+          return newContent;
+        });
+
+        // Update database
+        for (const update of updates) {
+          await supabase.from('content').update({ position: update.position }).eq('id', update.id);
+        }
+      };
+
+      const addIdea = async (idea) => {
+        const optimisticId = crypto.randomUUID();
+        const now = new Date().toISOString();
+        const optimisticIdea = {
+          id: optimisticId,
+          title: idea.title,
+          description: idea.description || '',
+          type: idea.type,
+          tags: idea.tags || [],
+          assignee: idea.assignee || '',
+          notes: idea.notes || '',
+          platforms: idea.platforms || [],
+          createdBy: user?.email || 'Unknown',
+          createdAt: now,
+          updatedBy: null,
+          updatedAt: null,
+        };
+
+        // Optimistically add to state
+        setIdeas(prev => [optimisticIdea, ...prev]);
+
+        const newIdea = {
+          title: idea.title,
+          description: idea.description || '',
+          type: idea.type,
+          tags: idea.tags || [],
+          created_by: user?.email || 'Unknown',
+        };
+        // Only include extended fields if they have values (columns may not exist yet)
+        if (idea.assignee) newIdea.assignee = idea.assignee;
+        if (idea.notes) newIdea.notes = idea.notes;
+        if (idea.platforms?.length > 0) newIdea.platforms = idea.platforms;
+
+        let { data, error } = await supabase.from('ideas').insert(newIdea).select().single();
+
+        if (error) {
+          // If error is about missing columns, retry with base fields only
+          if (error.message?.includes('column')) {
+            const baseIdea = { title: newIdea.title, description: newIdea.description, type: newIdea.type, tags: newIdea.tags, created_by: newIdea.created_by };
+            const retry = await supabase.from('ideas').insert(baseIdea).select().single();
+            data = retry.data;
+            error = retry.error;
+          }
+          if (error) {
+            setIdeas(prev => prev.filter(item => item.id !== optimisticId));
+            console.error('Failed to add idea:', error);
+            return null;
+          }
+        }
+
+        // Replace optimistic with real data
+        setIdeas(prev => prev.map(item => item.id === optimisticId ? dbToIdea(data) : item));
+        return dbToIdea(data);
+      };
+
+      const updateIdea = async (id, updates) => {
+        // Optimistically update
+        setIdeas(prev => prev.map(item =>
+          item.id === id ? { ...item, ...updates, updatedBy: user?.email || 'Unknown', updatedAt: new Date().toISOString() } : item
+        ));
+
+        const dbUpdates = {
+          title: updates.title,
+          description: updates.description || '',
+          type: updates.type,
+          tags: updates.tags || [],
+        };
+        // Only include extended fields if present (columns may not exist yet)
+        if (updates.assignee !== undefined) dbUpdates.assignee = updates.assignee || '';
+        if (updates.notes !== undefined) dbUpdates.notes = updates.notes || '';
+        if (updates.platforms !== undefined) dbUpdates.platforms = updates.platforms || [];
+        dbUpdates.updated_by = user?.email || 'Unknown';
+        dbUpdates.updated_at = new Date().toISOString();
+
+        let { error } = await supabase.from('ideas').update(dbUpdates).eq('id', id);
+        if (error && error.message?.includes('column')) {
+          // Retry with base fields only
+          const baseUpdates = { title: dbUpdates.title, description: dbUpdates.description, type: dbUpdates.type, tags: dbUpdates.tags };
+          const retry = await supabase.from('ideas').update(baseUpdates).eq('id', id);
+          error = retry.error;
+        }
+        if (error) {
+          console.error('Failed to update idea:', error);
+          const { data } = await supabase.from('ideas').select('*').order('created_at', { ascending: false });
+          if (data) setIdeas(data.map(dbToIdea));
+        }
+      };
+
+      const deleteIdea = async (id) => {
+        await supabase.from('ideas').delete().eq('id', id);
+      };
+
+      const promoteIdea = async (ideaId) => {
+        const idea = ideas.find((i) => i.id === ideaId);
+        if (!idea) return null;
+        const firstStage = idea.type === 'long-form' ? 'scheduled-shoot' : idea.type === 'short-form' ? 'planning' : 'social-draft';
+        const newContent = await addContent({
+          title: idea.title,
+          description: idea.description || '',
+          type: idea.type,
+          stage: firstStage,
+          shootDate: '',
+          releaseDate: '',
+          assignee: idea.assignee || '',
+          tags: idea.tags || [],
+          notes: idea.notes || '',
+          platforms: idea.platforms || [],
+        });
+        await deleteIdea(ideaId);
+        return newContent;
+      };
+
+      const unpromoteContent = async (contentId) => {
+        const item = content.find((c) => c.id === contentId);
+        if (!item) return null;
+        const newIdea = await addIdea({
+          title: item.title,
+          description: item.description || '',
+          type: item.type,
+          tags: item.tags || [],
+          assignee: item.assignee || '',
+          notes: item.notes || '',
+          platforms: item.platforms || [],
+        });
+        // Remove from content without moving to trash
+        await supabase.from('content').delete().eq('id', contentId);
+        return newIdea;
+      };
+
+      const exportData = () => {
+        const data = { content, ideas, teamMembers, deletedContent };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `pl-calendar-backup-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      const importData = async (jsonData) => {
+        try {
+          const parsed = JSON.parse(jsonData);
+          if (parsed.content && parsed.ideas) {
+            // Clear existing and insert new
+            await supabase.from('content').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+            await supabase.from('ideas').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+
+            for (const item of parsed.content) {
+              await addContent(item);
+            }
+            for (const idea of parsed.ideas) {
+              await addIdea(idea);
+            }
+            return true;
+          }
+          return false;
+        } catch {
+          return false;
+        }
+      };
+
+      const addCustomTag = async (tagName) => {
+        const trimmed = tagName.trim();
+        if (!trimmed) return false;
+        // Check if already exists in default or custom tags
+        const allTags = [...DEFAULT_TAGS, ...customTags];
+        if (allTags.some(t => t.toLowerCase() === trimmed.toLowerCase())) {
+          return false; // Already exists
+        }
+        // Optimistically add
+        setCustomTags(prev => [...prev, trimmed].sort());
+        // Save to database
+        const { error } = await supabase.from('custom_tags').insert({ name: trimmed });
+        if (error) {
+          // Revert on error
+          setCustomTags(prev => prev.filter(t => t !== trimmed));
+          console.error('Failed to add custom tag:', error);
+          return false;
+        }
+        return true;
+      };
+
+      // Combined tags: default + custom
+      const allTags = [...DEFAULT_TAGS, ...customTags].sort();
+
+      return {
+        content,
+        ideas,
+        teamMembers,
+        deletedContent,
+        customTags,
+        allTags,
+        loading,
+        addContent,
+        updateContent,
+        deleteContent,
+        moveContent,
+        reorderContent,
+        restoreContent,
+        permanentlyDeleteContent,
+        emptyTrash,
+        purgeOldDeletedContent,
+        addIdea,
+        updateIdea,
+        deleteIdea,
+        promoteIdea,
+        unpromoteContent,
+        exportData,
+        importData,
+        addCustomTag
+      };
+    }
+
+    // Date utilities
+    const formatDate = (date, options = { month: 'short', day: 'numeric' }) => {
+      if (typeof date === 'string') {
+        // Parse YYYY-MM-DD as local date, not UTC
+        const [year, month, day] = date.split('-').map(Number);
+        date = new Date(year, month - 1, day);
+      }
+      return date.toLocaleDateString('en-US', options);
+    };
+
+    const formatMonthYear = (date) => formatDate(date, { month: 'long', year: 'numeric' });
+    const formatDayOfWeek = (date) => formatDate(date, { weekday: 'short' });
+
+    // Calculate due date warning status
+    const getDueDateWarning = (releaseDate) => {
+      if (!releaseDate) return null;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      // Parse YYYY-MM-DD as local date, not UTC
+      let release;
+      if (typeof releaseDate === 'string' && releaseDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        const [year, month, day] = releaseDate.split('-').map(Number);
+        release = new Date(year, month - 1, day);
+      } else {
+        release = new Date(releaseDate);
+        release.setHours(0, 0, 0, 0);
+      }
+      const diffTime = release - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays < 0) return { type: 'overdue', label: `${Math.abs(diffDays)}d overdue`, days: diffDays };
+      if (diffDays === 0) return { type: 'today', label: 'Today!', days: 0 };
+      if (diffDays <= 3) return { type: 'urgent', label: `${diffDays}d left`, days: diffDays };
+      if (diffDays <= 7) return { type: 'warning', label: `${diffDays}d left`, days: diffDays };
+      return null;
+    };
+
+    // Get display name from email (capitalizes the part before @)
+    const getDisplayName = (email) => {
+      if (!email) return '';
+      const name = email.split('@')[0];
+      return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+    };
+
+    const getMonthDays = (date) => {
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const startDate = new Date(firstDay);
+      startDate.setDate(startDate.getDate() - startDate.getDay());
+      const endDate = new Date(lastDay);
+      endDate.setDate(endDate.getDate() + (6 - endDate.getDay()));
+      const days = [];
+      let current = new Date(startDate);
+      while (current <= endDate) {
+        days.push(new Date(current));
+        current.setDate(current.getDate() + 1);
+      }
+      return days;
+    };
+
+    const isToday = (date) => {
+      const today = new Date();
+      return date.toDateString() === today.toDateString();
+    };
+
+    const isSameMonth = (date1, date2) => {
+      return date1.getMonth() === date2.getMonth() && date1.getFullYear() === date2.getFullYear();
+    };
+
+    // SVG Icons
+    const PlusIcon = () => <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>;
+    const ChevronLeft = () => <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 4L6 8l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+    const ChevronRight = () => <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+    const CloseIcon = () => <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M15 5L5 15M5 5l10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>;
+    const TrashIcon = () => <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 4h8M5.5 4V3a1 1 0 011-1h1a1 1 0 011 1v1M6 6.5v3M8 6.5v3M4 4l.5 7a1 1 0 001 1h3a1 1 0 001-1l.5-7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+    const ArrowUpIcon = () => <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 11V3m0 0L4 6m3-3l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+    const LogoutIcon = () => <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 14H3a1 1 0 01-1-1V3a1 1 0 011-1h3M11 11l3-3-3-3M14 8H6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+
+    // Peoples League Logo - permanent, from official website
+    const PL_LOGO_URL = 'https://peoplesleaguegolf.com/wp-content/uploads/2024/08/PL-_-PRIMARY-LOGO-.png';
+
+    const Logo = ({ size = 40, showText = false }) => {
+      // For sidebar brand, show full horizontal logo
+      if (showText) {
+        return (
+          <img
+            src={PL_LOGO_URL}
+            alt="Peoples League"
+            style={{ height: size, width: 'auto', objectFit: 'contain' }}
+          />
+        );
+      }
+      // For other places, show just a square crop
+      return (
+        <img
+          src={PL_LOGO_URL}
+          alt="Peoples League"
+          style={{ height: size, width: 'auto', maxWidth: size * 3, objectFit: 'contain' }}
+        />
+      );
+    };
+
+    // User Avatar Component - shows profile pic or initials
+    const UserAvatar = ({ email, size = 32, editable = false }) => {
+      const { getProfilePic, uploadProfilePic, clearProfilePic } = useProfilePics() || {};
+      const profilePic = getProfilePic?.(email);
+      const fileInputRef = useRef(null);
+      const [showMenu, setShowMenu] = useState(false);
+
+      const initial = email?.charAt(0).toUpperCase() || '?';
+
+      const handleClick = (e) => {
+        e.stopPropagation();
+        if (editable) {
+          setShowMenu(!showMenu);
+        }
+      };
+
+      const handleUpload = () => {
+        fileInputRef.current?.click();
+        setShowMenu(false);
+      };
+
+      const handleFileChange = async (e) => {
+        const file = e.target.files?.[0];
+        if (file) {
+          if (file.size > 300000) {
+            alert('Image too large. Please use an image under 300KB.');
+            return;
+          }
+          try {
+            await uploadProfilePic(email, file);
+          } catch (err) {
+            alert(err.message);
+          }
+        }
+        e.target.value = '';
+      };
+
+      const handleClear = () => {
+        clearProfilePic?.(email);
+        setShowMenu(false);
+      };
+
+      return (
+        <div className="user-avatar-container" style={{ position: 'relative', display: 'inline-block' }}>
+          {profilePic ? (
+            <img
+              src={profilePic}
+              alt={email}
+              width={size}
+              height={size}
+              style={{
+                borderRadius: '50%',
+                objectFit: 'cover',
+                cursor: editable ? 'pointer' : 'default',
+              }}
+              onClick={handleClick}
+              title={email}
+            />
+          ) : (
+            <div
+              className="user-avatar"
+              style={{
+                width: size,
+                height: size,
+                borderRadius: '50%',
+                background: 'var(--pl-lime)',
+                color: 'var(--pl-teal)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 600,
+                fontSize: size * 0.45,
+                cursor: editable ? 'pointer' : 'default',
+              }}
+              onClick={handleClick}
+              title={email}
+            >
+              {initial}
+            </div>
+          )}
+          {editable && showMenu && (
+            <div className="avatar-menu">
+              <button onClick={handleUpload}>{profilePic ? 'Change Photo' : 'Upload Photo'}</button>
+              {profilePic && <button onClick={handleClear}>Remove Photo</button>}
+            </div>
+          )}
+          {editable && (
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              style={{ display: 'none' }}
+            />
+          )}
+        </div>
+      );
+    };
+
+    // Admin Portal Component
+    const AdminPortal = ({ deletedContent = [], onRestore, onPermanentDelete, onEmptyTrash }) => {
+      const { inviteUser } = useAuth();
+      const [email, setEmail] = useState('');
+      const [loading, setLoading] = useState(false);
+      const [message, setMessage] = useState({ type: '', text: '' });
+      const [showTrash, setShowTrash] = useState(false);
+      const [teamMembers, setTeamMembers] = useState(() => {
+        try {
+          return JSON.parse(localStorage.getItem('pl-team-members') || '[]');
+        } catch {
+          return [];
+        }
+      });
+
+      useEffect(() => {
+        localStorage.setItem('pl-team-members', JSON.stringify(teamMembers));
+      }, [teamMembers]);
+
+      const handleInviteUser = async (e) => {
+        e.preventDefault();
+        setMessage({ type: '', text: '' });
+        setLoading(true);
+
+        const { data, error } = await inviteUser(email);
+        if (error) {
+          setMessage({ type: 'error', text: error.message });
+        } else {
+          setMessage({ type: 'success', text: `Invite sent to ${email}! They'll receive a login code via email.` });
+          if (!teamMembers.includes(email.toLowerCase())) {
+            setTeamMembers(prev => [...prev, email.toLowerCase()]);
+          }
+          setEmail('');
+        }
+        setLoading(false);
+      };
+
+      const handleRemoveMember = (memberEmail) => {
+        if (confirm(`Remove ${memberEmail} from the team list? (Note: This doesn't delete their Supabase account)`)) {
+          setTeamMembers(prev => prev.filter(m => m !== memberEmail));
+        }
+      };
+
+      const handleResendInvite = async (memberEmail) => {
+        setMessage({ type: '', text: '' });
+        const { data, error } = await inviteUser(memberEmail);
+        if (error) {
+          setMessage({ type: 'error', text: error.message });
+        } else {
+          setMessage({ type: 'success', text: `New login code sent to ${memberEmail}!` });
+        }
+      };
+
+      return (
+        <div className="admin-portal">
+          <div className="admin-header">
+            <h2>Admin Portal</h2>
+            <p>Invite team members to access the content calendar</p>
+          </div>
+
+          <div className="admin-section">
+            <h3>Invite New Team Member</h3>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: 'var(--space-md)' }}>
+              Enter their email address. They'll receive a login code to access the calendar.
+            </p>
+            <form onSubmit={handleInviteUser} className="admin-form">
+              {message.text && (
+                <div className={message.type === 'error' ? 'auth-error' : 'auth-success'}>
+                  {message.text}
+                </div>
+              )}
+              <div className="form-group">
+                <label className="form-label">Email Address</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="form-input"
+                  placeholder="teammate@example.com"
+                  required
+                />
+              </div>
+              <Button variant="primary" type="submit" disabled={loading}>
+                {loading ? <span className="loading-spinner" /> : 'Send Invite'}
+              </Button>
+            </form>
+          </div>
+
+          <div className="admin-section">
+            <h3>Team Members</h3>
+            {teamMembers.length === 0 ? (
+              <p className="admin-empty">No team members added yet. Invite users above.</p>
+            ) : (
+              <div className="admin-team-list">
+                {teamMembers.map(member => (
+                  <div key={member} className="admin-team-member">
+                    <UserAvatar email={member} size={32} />
+                    <span className="admin-team-email">{member}</span>
+                    <Button variant="ghost" size="sm" onClick={() => handleResendInvite(member)} title="Resend login code">
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <path d="M1 7a6 6 0 1011.5 2.5M12.5 9.5v-3h-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleRemoveMember(member)} title="Remove from list">
+                      <TrashIcon />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="admin-section">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-md)' }}>
+              <h3 style={{ margin: 0 }}>Deleted Content</h3>
+              <Button variant="ghost" size="sm" onClick={() => setShowTrash(!showTrash)}>
+                {showTrash ? 'Hide' : 'Show'} ({deletedContent.length})
+              </Button>
+            </div>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: 'var(--space-md)' }}>
+              Cards deleted by team members are kept here for 30 days before being permanently removed.
+            </p>
+            {showTrash && (
+              <>
+                {deletedContent.length === 0 ? (
+                  <p className="admin-empty">No deleted content</p>
+                ) : (
+                  <>
+                    <div className="admin-trash-list">
+                      {deletedContent.map(item => (
+                        <div key={item.id} className="admin-trash-item">
+                          <div className="admin-trash-info">
+                            <strong>{item.title}</strong>
+                            <span className="admin-trash-meta">
+                              Deleted by {item.deletedBy} on {new Date(item.deletedAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <div className="admin-trash-actions">
+                            <Button variant="ghost" size="sm" onClick={() => onRestore(item.id)} title="Restore">
+                              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                <path d="M1 7a6 6 0 1011.5 2.5M12.5 9.5v-3h-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => confirm('Permanently delete this card?') && onPermanentDelete(item.id)} title="Delete permanently">
+                              <TrashIcon />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {deletedContent.length > 0 && (
+                      <div style={{ marginTop: 'var(--space-md)' }}>
+                        <Button variant="ghost" size="sm" onClick={() => confirm('Empty trash? This cannot be undone.') && onEmptyTrash()}>
+                          Empty Trash
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    // Archive View - Shows all published content
+    const ArchiveView = ({ content, onCardClick }) => {
+      const publishedContent = content.filter(item => item.stage === 'published');
+      const [sortBy, setSortBy] = useState('releaseDate'); // 'releaseDate' or 'title'
+      const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
+
+      const sortedContent = [...publishedContent].sort((a, b) => {
+        if (sortBy === 'releaseDate') {
+          const dateA = a.releaseDate ? new Date(a.releaseDate) : new Date(0);
+          const dateB = b.releaseDate ? new Date(b.releaseDate) : new Date(0);
+          return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+        } else {
+          const comp = a.title.localeCompare(b.title);
+          return sortOrder === 'desc' ? -comp : comp;
+        }
+      });
+
+      const toggleSort = (field) => {
+        if (sortBy === field) {
+          setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+        } else {
+          setSortBy(field);
+          setSortOrder('desc');
+        }
+      };
+
+      return (
+        <div className="archive-view">
+          <div className="archive-header">
+            <div>
+              <h2 className="archive-title">Archive</h2>
+              <p className="archive-subtitle">{publishedContent.length} published item{publishedContent.length !== 1 ? 's' : ''}</p>
+            </div>
+            <div className="archive-sort">
+              <span style={{ fontSize: 12, color: 'var(--text-muted)', marginRight: 8 }}>Sort by:</span>
+              <button
+                className={`archive-sort-btn ${sortBy === 'releaseDate' ? 'active' : ''}`}
+                onClick={() => toggleSort('releaseDate')}
+              >
+                Date {sortBy === 'releaseDate' && (sortOrder === 'desc' ? '↓' : '↑')}
+              </button>
+              <button
+                className={`archive-sort-btn ${sortBy === 'title' ? 'active' : ''}`}
+                onClick={() => toggleSort('title')}
+              >
+                Title {sortBy === 'title' && (sortOrder === 'desc' ? '↓' : '↑')}
+              </button>
+            </div>
+          </div>
+          {sortedContent.length === 0 ? (
+            <div className="archive-empty">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ opacity: 0.5 }}>
+                <path d="M3 5h18a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1V6a1 1 0 011-1z"/>
+                <path d="M5 9v8a2 2 0 002 2h10a2 2 0 002-2V9"/>
+                <path d="M10 13h4"/>
+              </svg>
+              <p>No published content yet</p>
+              <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Content will appear here once it's marked as published</span>
+            </div>
+          ) : (
+            <div className="archive-grid">
+              {sortedContent.map((item) => (
+                <div key={item.id} className="archive-card" onClick={() => onCardClick(item)}>
+                  <div className="archive-card-header">
+                    <Badge variant={item.type === 'long-form' ? 'type-long' : 'type-short'}>
+                      {item.type === 'long-form' ? 'Long' : 'Short'}
+                    </Badge>
+                    {item.releaseDate && (
+                      <span className="archive-card-date">{formatDate(item.releaseDate, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    )}
+                  </div>
+                  <h3 className="archive-card-title">{item.title}</h3>
+                  {item.description && <p className="archive-card-desc">{item.description}</p>}
+                  {item.tags?.length > 0 && (
+                    <div className="archive-card-tags">
+                      {item.tags.map((tag) => <span key={tag} className="content-card-tag">{tag}</span>)}
+                    </div>
+                  )}
+                  {item.assignee && (
+                    <div className="archive-card-meta">
+                      <UserAvatar email={item.assignee} size={16} />
+                      <span>{getDisplayName(item.assignee)}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // Help Guide Component - Get Started Guide
+    const HelpGuide = ({ onClose }) => {
+      return (
+        <div className="help-guide">
+          <div className="help-header">
+            <div>
+              <Logo size={40} showText={true} />
+              <h2 style={{ marginTop: '12px' }}>Get Started Guide</h2>
+            </div>
+            <Button variant="ghost" size="sm" onClick={onClose}><CloseIcon /></Button>
+          </div>
+
+          <div className="help-content">
+            {/* Three Views Section */}
+            <div className="help-section-title">Three Views, One Workflow</div>
+            <div className="help-cards-grid">
+              <div className="help-card">
+                <div className="help-card-icon">📋</div>
+                <h4>Pipeline</h4>
+                <p>Your main workspace. Drag cards through stages as content progresses from shoot to publish.</p>
+              </div>
+              <div className="help-card">
+                <div className="help-card-icon">📅</div>
+                <h4>Calendar</h4>
+                <p>See what's shooting and releasing by date. Great for spotting conflicts and planning ahead.</p>
+              </div>
+              <div className="help-card">
+                <div className="help-card-icon">💡</div>
+                <h4>Ideas</h4>
+                <p>Capture ideas before they're ready. Click "Start" to move one into production.</p>
+              </div>
+            </div>
+
+            {/* Pipeline Flow */}
+            <div className="help-section-title">How Content Flows</div>
+            <div className="help-pipeline-visual">
+              <div className="help-pipeline-stage"><span className="help-stage-dot" style={{background: '#3b82f6'}} />Shoot Scheduled</div>
+              <span className="help-pipeline-arrow">→</span>
+              <div className="help-pipeline-stage"><span className="help-stage-dot" style={{background: '#f59e0b'}} />In Production</div>
+              <span className="help-pipeline-arrow">→</span>
+              <div className="help-pipeline-stage"><span className="help-stage-dot" style={{background: '#ec4899'}} />Editing</div>
+              <span className="help-pipeline-arrow">→</span>
+              <div className="help-pipeline-stage"><span className="help-stage-dot" style={{background: '#06b6d4'}} />Review</div>
+              <span className="help-pipeline-arrow">→</span>
+              <div className="help-pipeline-stage"><span className="help-stage-dot" style={{background: '#10b981'}} />Scheduled</div>
+              <span className="help-pipeline-arrow">→</span>
+              <div className="help-pipeline-stage"><span className="help-stage-dot" style={{background: '#e7ff01'}} />Published</div>
+            </div>
+
+            {/* Getting Started Steps */}
+            <div className="help-section-title">Getting Started</div>
+            <div className="help-steps">
+              <div className="help-step">
+                <div className="help-step-number">1</div>
+                <div className="help-step-content">
+                  <h4>Add your first content</h4>
+                  <p>Click the yellow "Add Content" button or press <strong>N</strong>. Fill in the title, type, dates, and assignee.</p>
+                </div>
+              </div>
+              <div className="help-step">
+                <div className="help-step-number">2</div>
+                <div className="help-step-content">
+                  <h4>Move cards as work progresses</h4>
+                  <p>Drag cards between columns or use the arrow buttons that appear on hover.</p>
+                </div>
+              </div>
+              <div className="help-step">
+                <div className="help-step-number">3</div>
+                <div className="help-step-content">
+                  <h4>Check the Calendar</h4>
+                  <p>See "S" for shoot days and "R" for release days. Click any event for details.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Keyboard Shortcuts */}
+            <div className="help-section-title">Keyboard Shortcuts</div>
+            <div className="help-shortcuts">
+              <div className="help-shortcut">
+                <span className="help-shortcut-key">N</span>
+                <span className="help-shortcut-desc">New content</span>
+              </div>
+              <div className="help-shortcut">
+                <span className="help-shortcut-key">Esc</span>
+                <span className="help-shortcut-desc">Close modal</span>
+              </div>
+            </div>
+
+            {/* Pro Tips */}
+            <div className="help-tips-box">
+              <h4>💡 Pro Tips</h4>
+              <ul>
+                <li>Use filters (All / Long-form / Short-form) to focus on what matters</li>
+                <li>Release dates show in pink so you can spot deadlines fast</li>
+                <li>Made a mistake? Watch for the Undo button (5 second window)</li>
+                <li>Uncheck "Send notifications" when batch-adding to avoid email spam</li>
+                <li>Click your avatar to upload a profile picture</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // Activity Log Component
+    const ActivityLog = ({ onClose }) => {
+      const { logs } = useActivityLog();
+
+      const getActionIcon = (action) => {
+        if (action.includes('added') || action.includes('created')) return { icon: '+', className: 'add' };
+        if (action.includes('edited') || action.includes('updated')) return { icon: '✎', className: 'edit' };
+        if (action.includes('deleted')) return { icon: '×', className: 'delete' };
+        if (action.includes('moved')) return { icon: '→', className: 'move' };
+        if (action.includes('promoted') || action.includes('started')) return { icon: '↑', className: 'promote' };
+        if (action.includes('restored')) return { icon: '↩', className: 'restore' };
+        return { icon: '•', className: 'edit' };
+      };
+
+      const formatTime = (timestamp) => {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diff = now - date;
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+
+        if (minutes < 1) return 'Just now';
+        if (minutes < 60) return `${minutes}m ago`;
+        if (hours < 24) return `${hours}h ago`;
+        if (days < 7) return `${days}d ago`;
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      };
+
+      return (
+        <div className="activity-log">
+          <div className="activity-log-header">
+            <div>
+              <h2>Activity Log</h2>
+              <p>A record of all changes made to the calendar</p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={onClose}><CloseIcon /></Button>
+          </div>
+
+          <div className="activity-log-list">
+            {logs.length === 0 ? (
+              <div className="activity-log-empty">No activity recorded yet. Actions will appear here as you use the calendar.</div>
+            ) : (
+              logs.map((log) => {
+                const { icon, className } = getActionIcon(log.action);
+                return (
+                  <div key={log.id} className="activity-log-item">
+                    <div className={`activity-log-icon ${className}`}>{icon}</div>
+                    <div className="activity-log-content">
+                      <div className="activity-log-action">
+                        <strong>{log.action}</strong>
+                        {log.details && ` — ${log.details}`}
+                      </div>
+                      <div className="activity-log-meta">
+                        <span className="activity-log-user">{log.user}</span>
+                        <span className="activity-log-time">{formatTime(log.timestamp)}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    // Auth Page Component - OTP (email code) login
+    const AuthPage = () => {
+      const { sendOTP, verifyOTP } = useAuth();
+      const [step, setStep] = useState('email'); // 'email' or 'code'
+      const [email, setEmail] = useState('');
+      const [code, setCode] = useState('');
+      const [error, setError] = useState('');
+      const [loading, setLoading] = useState(false);
+
+      const handleSendCode = async (e) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+
+        const { data, error } = await sendOTP(email);
+        if (error) {
+          if (error.message.includes('rate limit')) {
+            setError('Too many attempts. Please wait a minute and try again.');
+          } else {
+            setError(error.message);
+          }
+        } else {
+          setStep('code');
+        }
+        setLoading(false);
+      };
+
+      const handleVerifyCode = async (e) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+
+        const { data, error } = await verifyOTP(email, code);
+        if (error) {
+          setError('Invalid or expired code. Please try again.');
+        }
+        setLoading(false);
+      };
+
+      const handleBack = () => {
+        setStep('email');
+        setCode('');
+        setError('');
+      };
+
+      return (
+        <div className="auth-page">
+          <div className="auth-container">
+            <div className="auth-header">
+              <Logo size={60} />
+              <h1>Peoples League</h1>
+              <p>Content Calendar</p>
+            </div>
+
+            {step === 'email' ? (
+              <>
+                <h2 style={{ fontSize: '16px', fontWeight: '600', marginBottom: 'var(--space-md)', color: 'var(--text-primary)' }}>Sign In</h2>
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: 'var(--space-md)' }}>
+                  Enter your email and we'll send you a login code.
+                </p>
+                {error && <div className="auth-error">{error}</div>}
+                <form className="auth-form" onSubmit={handleSendCode}>
+                  <div className="form-group">
+                    <label className="form-label">Email</label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="form-input"
+                      placeholder="you@example.com"
+                      required
+                      autoFocus
+                    />
+                  </div>
+                  <Button variant="primary" type="submit" disabled={loading}>
+                    {loading ? <span className="loading-spinner" /> : 'Send Code'}
+                  </Button>
+                </form>
+              </>
+            ) : (
+              <>
+                <h2 style={{ fontSize: '16px', fontWeight: '600', marginBottom: 'var(--space-md)', color: 'var(--text-primary)' }}>Enter Code</h2>
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: 'var(--space-md)' }}>
+                  We sent a code to <strong style={{ color: 'var(--text-primary)' }}>{email}</strong>
+                </p>
+                {error && <div className="auth-error">{error}</div>}
+                <form className="auth-form" onSubmit={handleVerifyCode}>
+                  <div className="form-group">
+                    <label className="form-label">Login Code</label>
+                    <input
+                      type="text"
+                      value={code}
+                      onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      className="form-input"
+                      placeholder="000000"
+                      required
+                      autoFocus
+                      style={{ letterSpacing: '0.4em', textAlign: 'center', fontSize: '22px' }}
+                      maxLength={6}
+                    />
+                  </div>
+                  <Button variant="primary" type="submit" disabled={loading || code.length !== 6}>
+                    {loading ? <span className="loading-spinner" /> : 'Verify & Sign In'}
+                  </Button>
+                  <div style={{ textAlign: 'center', marginTop: 'var(--space-md)' }}>
+                    <button
+                      type="button"
+                      onClick={handleBack}
+                      style={{ color: 'var(--text-secondary)', fontSize: '13px', textDecoration: 'underline' }}
+                    >
+                      Use a different email
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    // Components
+    const Button = ({ children, variant = 'default', size = 'md', onClick, type = 'button', disabled = false }) => (
+      <button type={type} onClick={onClick} disabled={disabled} className={`btn btn-${variant} btn-${size}`}>
+        {children}
+      </button>
+    );
+
+    const Badge = ({ children, variant = 'default' }) => (
+      <span className={`badge badge-${variant}`}>{children}</span>
+    );
+
+    // Toast component for undo actions
+    const Toast = ({ message, onUndo, onDismiss }) => (
+      <div className="toast">
+        <span className="toast-message">{message}</span>
+        {onUndo && <button className="toast-undo" onClick={onUndo}>Undo</button>}
+        <button className="toast-dismiss" onClick={onDismiss}>
+          <CloseIcon />
+        </button>
+      </div>
+    );
+
+    const ToastContainer = ({ toasts, onDismiss, onUndo }) => {
+      if (toasts.length === 0) return null;
+      return (
+        <div className="toast-container">
+          {toasts.map((toast) => (
+            <Toast
+              key={toast.id}
+              message={toast.message}
+              onUndo={toast.undoAction ? () => onUndo(toast.id) : null}
+              onDismiss={() => onDismiss(toast.id)}
+            />
+          ))}
+        </div>
+      );
+    };
+
+    const Modal = ({ isOpen, onClose, title, children }) => {
+      const modalRef = useRef(null);
+
+      useEffect(() => {
+        const handleEscape = (e) => { if (e.key === 'Escape') onClose(); };
+        if (isOpen) {
+          document.addEventListener('keydown', handleEscape);
+          document.body.style.overflow = 'hidden';
+        }
+        return () => {
+          document.removeEventListener('keydown', handleEscape);
+          document.body.style.overflow = '';
+        };
+      }, [isOpen, onClose]);
+
+      const handleBackdropClick = (e) => { if (e.target === modalRef.current) onClose(); };
+
+      if (!isOpen) return null;
+
+      return (
+        <div className="modal-backdrop" ref={modalRef} onClick={handleBackdropClick}>
+          <div className="modal">
+            <div className="modal-header">
+              <h2 className="modal-title">{title}</h2>
+              <Button variant="ghost" size="sm" onClick={onClose}><CloseIcon /></Button>
+            </div>
+            <div className="modal-body">{children}</div>
+          </div>
+        </div>
+      );
+    };
+
+    const ContentCard = ({ content, onClick, compact = false, draggable = false, onDragStart, onDragEnd }) => {
+      const stages = content.type === 'long-form' ? LONG_FORM_STAGES : content.type === 'short-form' ? SHORT_FORM_STAGES : SOCIAL_STAGES;
+      const currentStage = stages.find((s) => s.id === content.stage);
+      const [isDragging, setIsDragging] = useState(false);
+
+      const isPublished = content.stage === 'published' || content.stage === 'social-published';
+      const dueWarning = !isPublished ? getDueDateWarning(content.releaseDate) : null;
+
+      const handleDragStart = (e) => {
+        setIsDragging(true);
+        e.dataTransfer.setData('text/plain', content.id);
+        e.dataTransfer.effectAllowed = 'move';
+        if (onDragStart) onDragStart(content);
+      };
+
+      const handleDragEnd = (e) => {
+        setIsDragging(false);
+        if (onDragEnd) onDragEnd();
+      };
+
+      const getTypeLabel = () => {
+        if (content.type === 'long-form') return 'Long';
+        if (content.type === 'short-form') return 'Short';
+        return 'Static';
+      };
+
+      const getTypeVariant = () => {
+        if (content.type === 'long-form') return 'type-long';
+        if (content.type === 'short-form') return 'type-short';
+        return 'type-social';
+      };
+
+      return (
+        <div
+          className={`content-card ${compact ? 'content-card-compact' : ''} ${isDragging ? 'dragging' : ''}`}
+          onClick={onClick}
+          draggable={draggable}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="content-card-header">
+            <Badge variant={getTypeVariant()}>
+              {getTypeLabel()}
+            </Badge>
+            {content.type === 'social' && content.platforms?.length > 0 && (
+              <div className="platform-badges">
+                {content.platforms.map(p => (
+                  <span key={p} className={`platform-badge ${p}`} title={p.charAt(0).toUpperCase() + p.slice(1)}>
+                    {p === 'linkedin' ? 'in' : p === 'instagram' ? 'IG' : 'X'}
+                  </span>
+                ))}
+              </div>
+            )}
+            {content.assignee && <span className="content-card-assignee">{getDisplayName(content.assignee)}</span>}
+          </div>
+          <h4 className="content-card-title">{content.title}</h4>
+          {!compact && content.description && <p className="content-card-desc">{content.description}</p>}
+          <div className="content-card-footer">
+            <div className="content-card-dates">
+              {content.type !== 'social' && content.shootDate && <div className="content-card-date">Shoot: {formatDate(content.shootDate)}</div>}
+              {content.releaseDate && (
+                <div className={`content-card-date release ${dueWarning?.type || ''}`}>
+                  {content.type === 'social' ? 'Post: ' : 'Release: '}{formatDate(content.releaseDate)}
+                  {dueWarning && <span className={`due-warning ${dueWarning.type}`}>{dueWarning.label}</span>}
+                </div>
+              )}
+            </div>
+            {content.tags?.length > 0 && !compact && (
+              <div className="content-card-tags">
+                {content.tags.slice(0, 2).map((tag) => <span key={tag} className="content-card-tag">{tag}</span>)}
+                {content.tags.length > 2 && <span className="content-card-tag">+{content.tags.length - 2}</span>}
+              </div>
+            )}
+          </div>
+          {content.updatedBy && (
+            <div className="content-card-meta">
+              <UserAvatar email={content.updatedBy} size={16} />
+              <span>Edited by {getDisplayName(content.updatedBy)}</span>
+            </div>
+          )}
+          <div className="content-card-stage-indicator" style={{ background: currentStage?.color }} />
+        </div>
+      );
+    };
+
+    const ContentForm = ({ content, teamMembers = [], availableTags = DEFAULT_TAGS, onAddTag, onSave, onDelete, onClose, defaultType }) => {
+      const { user } = useAuth();
+      const [isAddingTag, setIsAddingTag] = useState(false);
+      const [newTagName, setNewTagName] = useState('');
+      // Default stage based on content type
+      const getDefaultStage = (type) => {
+        if (type === 'long-form') return 'scheduled-shoot';
+        if (type === 'short-form') return 'planning';
+        return 'social-draft';
+      };
+      // Use defaultType if provided (from pipeline filter), otherwise fall back to content type or short-form
+      const initialType = content?.type || defaultType || 'short-form';
+      const [formData, setFormData] = useState({
+        title: content?.title || '',
+        description: content?.description || '',
+        type: initialType,
+        stage: content?.stage || getDefaultStage(initialType),
+        shootDate: content?.shootDate || '',
+        releaseDate: content?.releaseDate || '',
+        assignee: content?.assignee || '',
+        tags: content?.tags || [],
+        notes: content?.notes || '',
+        platforms: content?.platforms || [],
+        sendNotifications: content?.sendNotifications ?? true, // Default to true for new content
+      });
+
+      const isEditing = !!content?.id;
+      const stages = formData.type === 'long-form' ? LONG_FORM_STAGES : formData.type === 'short-form' ? SHORT_FORM_STAGES : SOCIAL_STAGES;
+      const creator = content?.createdBy || null;
+
+      const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+      };
+
+      const handleTypeChange = (type) => {
+        setFormData((prev) => ({ ...prev, type, stage: getDefaultStage(type) }));
+      };
+
+      const handleTagToggle = (tag) => {
+        setFormData((prev) => ({
+          ...prev,
+          tags: prev.tags.includes(tag) ? prev.tags.filter((t) => t !== tag) : [...prev.tags, tag],
+        }));
+      };
+
+      const handlePlatformToggle = (platformId) => {
+        setFormData((prev) => ({
+          ...prev,
+          platforms: prev.platforms.includes(platformId)
+            ? prev.platforms.filter((p) => p !== platformId)
+            : [...prev.platforms, platformId],
+        }));
+      };
+
+      const handleAddTag = async () => {
+        if (!newTagName.trim()) return;
+        const success = await onAddTag(newTagName);
+        if (success) {
+          // Auto-select the new tag
+          setFormData((prev) => ({
+            ...prev,
+            tags: [...prev.tags, newTagName.trim()],
+          }));
+          setNewTagName('');
+          setIsAddingTag(false);
+        } else {
+          alert('Tag already exists or could not be added.');
+        }
+      };
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!formData.title.trim()) return;
+        if (formData.type === 'social' && formData.platforms.length === 0) {
+          alert('Please select at least one platform for static posts.');
+          return;
+        }
+        onSave(formData);
+      };
+
+      return (
+        <form className="content-form" onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label">Title</label>
+            <input type="text" name="title" value={formData.title} onChange={handleChange} className="form-input" placeholder={formData.type === 'social' ? "Post title or hook..." : "Enter content title..."} autoFocus />
+          </div>
+          <div className="form-group">
+            <label className="form-label">{formData.type === 'social' ? 'Post Content' : 'Description'}</label>
+            <textarea name="description" value={formData.description} onChange={handleChange} className="form-textarea" placeholder={formData.type === 'social' ? "Write your post content..." : "Brief description..."} rows={formData.type === 'social' ? 4 : 2} />
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Content Type</label>
+              <div className="form-type-toggle">
+                <button type="button" className={`form-type-btn ${formData.type === 'long-form' ? 'active long' : ''}`} onClick={() => handleTypeChange('long-form')}>Long-form</button>
+                <button type="button" className={`form-type-btn ${formData.type === 'short-form' ? 'active short' : ''}`} onClick={() => handleTypeChange('short-form')}>Short-form</button>
+                <button type="button" className={`form-type-btn ${formData.type === 'social' ? 'active social' : ''}`} onClick={() => handleTypeChange('social')}>Static</button>
+              </div>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Stage</label>
+              <select name="stage" value={formData.stage} onChange={handleChange} className="form-select">
+                {stages.map((stage) => <option key={stage.id} value={stage.id}>{stage.label}</option>)}
+              </select>
+            </div>
+          </div>
+          {formData.type === 'social' && (
+            <div className="form-group">
+              <label className="form-label">Platforms</label>
+              <div className="form-platforms">
+                {SOCIAL_PLATFORMS.map((platform) => (
+                  <button
+                    key={platform.id}
+                    type="button"
+                    className={`form-platform-btn ${formData.platforms.includes(platform.id) ? 'active' : ''} ${platform.id}`}
+                    onClick={() => handlePlatformToggle(platform.id)}
+                  >
+                    <span className="form-platform-icon">{platform.id === 'linkedin' ? 'in' : platform.id === 'instagram' ? 'IG' : 'X'}</span>
+                    {platform.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="form-row">
+            {formData.type !== 'social' && (
+              <div className="form-group">
+                <label className="form-label">Shoot Date</label>
+                <input type="date" name="shootDate" value={formData.shootDate} onChange={handleChange} className="form-input" />
+              </div>
+            )}
+            <div className="form-group">
+              <label className="form-label">{formData.type === 'social' ? 'Post Date' : 'Release Date'}</label>
+              <input type="date" name="releaseDate" value={formData.releaseDate} onChange={handleChange} className="form-input" />
+            </div>
+          </div>
+          <div className="form-row">
+            {isEditing && creator && (
+              <div className="form-group">
+                <label className="form-label">Creator</label>
+                <input type="text" value={creator} className="form-input" disabled style={{ opacity: 0.7, cursor: 'not-allowed' }} />
+              </div>
+            )}
+            <div className="form-group">
+              <label className="form-label">Assignee</label>
+              <select name="assignee" value={formData.assignee} onChange={handleChange} className="form-select">
+                <option value="">Unassigned</option>
+                {teamMembers.map((member) => <option key={member.email} value={member.email}>{member.display_name || getDisplayName(member.email)}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Tags</label>
+            <div className="form-tags">
+              {availableTags.map((tag) => (
+                <button key={tag} type="button" className={`form-tag ${formData.tags.includes(tag) ? 'active' : ''}`} onClick={() => handleTagToggle(tag)}>{tag}</button>
+              ))}
+              {isAddingTag ? (
+                <div className="form-tag-add-input">
+                  <input
+                    type="text"
+                    value={newTagName}
+                    onChange={(e) => setNewTagName(e.target.value)}
+                    placeholder="New tag name..."
+                    className="form-tag-input"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') { e.preventDefault(); handleAddTag(); }
+                      if (e.key === 'Escape') { setIsAddingTag(false); setNewTagName(''); }
+                    }}
+                  />
+                  <button type="button" className="form-tag-add-btn" onClick={handleAddTag}>Add</button>
+                  <button type="button" className="form-tag-cancel-btn" onClick={() => { setIsAddingTag(false); setNewTagName(''); }}>✕</button>
+                </div>
+              ) : (
+                <button type="button" className="form-tag add-tag" onClick={() => setIsAddingTag(true)}>+ Add Tag</button>
+              )}
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Notes</label>
+            <textarea name="notes" value={formData.notes} onChange={handleChange} className="form-textarea" placeholder="Additional notes..." rows={3} />
+          </div>
+          <div className="form-group">
+            <label className="form-checkbox">
+              <input
+                type="checkbox"
+                name="sendNotifications"
+                checked={formData.sendNotifications}
+                onChange={(e) => setFormData(prev => ({ ...prev, sendNotifications: e.target.checked }))}
+              />
+              <span className="form-checkbox-label">Send email notifications</span>
+              <span className="form-checkbox-hint">Notify assignee of this task and upcoming deadlines</span>
+            </label>
+          </div>
+          <div className="form-actions">
+            {isEditing && <Button type="button" variant="danger" onClick={() => onDelete(content.id)}>Delete</Button>}
+            <div className="form-actions-right">
+              <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
+              <Button type="submit" variant="primary">{isEditing ? 'Save Changes' : 'Create Content'}</Button>
+            </div>
+          </div>
+        </form>
+      );
+    };
+
+    const IdeaForm = ({ idea, teamMembers = [], availableTags = DEFAULT_TAGS, onAddTag, onSave, onDelete, onClose }) => {
+      const { user } = useAuth();
+      const [isAddingTag, setIsAddingTag] = useState(false);
+      const [newTagName, setNewTagName] = useState('');
+      const [formData, setFormData] = useState({
+        title: idea?.title || '',
+        description: idea?.description || '',
+        type: idea?.type || 'short-form',
+        tags: idea?.tags || [],
+        assignee: idea?.assignee || '',
+        notes: idea?.notes || '',
+        platforms: idea?.platforms || [],
+      });
+
+      const creator = idea?.createdBy || null;
+
+      const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+      };
+
+      const handleTypeChange = (type) => {
+        setFormData((prev) => ({ ...prev, type }));
+      };
+
+      const handleTagToggle = (tag) => {
+        setFormData((prev) => ({
+          ...prev,
+          tags: prev.tags.includes(tag) ? prev.tags.filter((t) => t !== tag) : [...prev.tags, tag],
+        }));
+      };
+
+      const handlePlatformToggle = (platformId) => {
+        setFormData((prev) => ({
+          ...prev,
+          platforms: prev.platforms.includes(platformId)
+            ? prev.platforms.filter((p) => p !== platformId)
+            : [...prev.platforms, platformId],
+        }));
+      };
+
+      const handleAddTag = async () => {
+        if (!newTagName.trim()) return;
+        const success = await onAddTag(newTagName);
+        if (success) {
+          setFormData((prev) => ({ ...prev, tags: [...prev.tags, newTagName.trim()] }));
+          setNewTagName('');
+          setIsAddingTag(false);
+        } else {
+          alert('Tag already exists or could not be added.');
+        }
+      };
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!formData.title.trim()) return;
+        onSave(formData);
+      };
+
+      return (
+        <form className="content-form" onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label">Title</label>
+            <input type="text" name="title" value={formData.title} onChange={handleChange} className="form-input" placeholder="What's your idea?" autoFocus />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Description</label>
+            <textarea name="description" value={formData.description} onChange={handleChange} className="form-textarea" placeholder="Brief description..." rows={2} />
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Content Type</label>
+              <div className="form-type-toggle">
+                <button type="button" className={`form-type-btn ${formData.type === 'long-form' ? 'active long' : ''}`} onClick={() => handleTypeChange('long-form')}>Long-form</button>
+                <button type="button" className={`form-type-btn ${formData.type === 'short-form' ? 'active short' : ''}`} onClick={() => handleTypeChange('short-form')}>Short-form</button>
+                <button type="button" className={`form-type-btn ${formData.type === 'social' ? 'active social' : ''}`} onClick={() => handleTypeChange('social')}>Static</button>
+              </div>
+            </div>
+          </div>
+          {formData.type === 'social' && (
+            <div className="form-group">
+              <label className="form-label">Platforms</label>
+              <div className="form-platforms">
+                {SOCIAL_PLATFORMS.map((platform) => (
+                  <button
+                    key={platform.id}
+                    type="button"
+                    className={`form-platform-btn ${formData.platforms.includes(platform.id) ? 'active' : ''} ${platform.id}`}
+                    onClick={() => handlePlatformToggle(platform.id)}
+                  >
+                    <span className="form-platform-icon">{platform.id === 'linkedin' ? 'in' : platform.id === 'instagram' ? 'IG' : 'X'}</span>
+                    {platform.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="form-row">
+            {creator && (
+              <div className="form-group">
+                <label className="form-label">Creator</label>
+                <input type="text" value={getDisplayName(creator)} className="form-input" disabled style={{ opacity: 0.7, cursor: 'not-allowed' }} />
+              </div>
+            )}
+            <div className="form-group">
+              <label className="form-label">Assignee</label>
+              <select name="assignee" value={formData.assignee} onChange={handleChange} className="form-select">
+                <option value="">Unassigned</option>
+                {teamMembers.map((member) => <option key={member.email} value={member.email}>{member.display_name || getDisplayName(member.email)}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Tags</label>
+            <div className="form-tags">
+              {availableTags.map((tag) => (
+                <button key={tag} type="button" className={`form-tag ${formData.tags.includes(tag) ? 'active' : ''}`} onClick={() => handleTagToggle(tag)}>{tag}</button>
+              ))}
+              {isAddingTag ? (
+                <div className="form-tag-add-input">
+                  <input type="text" value={newTagName} onChange={(e) => setNewTagName(e.target.value)} placeholder="New tag name..." className="form-tag-input" autoFocus onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddTag(); } if (e.key === 'Escape') { setIsAddingTag(false); setNewTagName(''); } }} />
+                  <button type="button" className="form-tag-add-btn" onClick={handleAddTag}>Add</button>
+                  <button type="button" className="form-tag-cancel-btn" onClick={() => { setIsAddingTag(false); setNewTagName(''); }}>&#x2715;</button>
+                </div>
+              ) : (
+                <button type="button" className="form-tag add-tag" onClick={() => setIsAddingTag(true)}>+ Add Tag</button>
+              )}
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Notes</label>
+            <textarea name="notes" value={formData.notes} onChange={handleChange} className="form-textarea" placeholder="Additional notes..." rows={3} />
+          </div>
+          <div className="form-actions">
+            <Button type="button" variant="danger" onClick={() => onDelete(idea.id)}>Delete</Button>
+            <div className="form-actions-right">
+              <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
+              <Button type="submit" variant="primary">Save Changes</Button>
+            </div>
+          </div>
+        </form>
+      );
+    };
+
+    const PipelineColumn = ({ stage, items, onCardClick, onMoveContent, onReorderContent, allStages, onDragOver, onDrop, isDragOver }) => {
+      const [dragOverIndex, setDragOverIndex] = useState(null);
+      const [draggingId, setDraggingId] = useState(null);
+
+      const getCurrentStageIndex = (item) => {
+        return allStages.findIndex((s) => s.id === item.stage);
+      };
+
+      const handleMoveClick = (e, item, direction) => {
+        e.stopPropagation();
+        const currentIndex = getCurrentStageIndex(item);
+        const newIndex = direction === 'forward' ? currentIndex + 1 : currentIndex - 1;
+        if (newIndex >= 0 && newIndex < allStages.length) {
+          onMoveContent(item.id, allStages[newIndex].id);
+        }
+      };
+
+      const canMoveBack = (item) => getCurrentStageIndex(item) > 0;
+      const canMoveForward = (item) => getCurrentStageIndex(item) < allStages.length - 1;
+
+      const handleColumnDragOver = (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (onDragOver) onDragOver(stage.id);
+      };
+
+      const handleDragLeave = (e) => {
+        if (e.currentTarget.contains(e.relatedTarget)) return;
+        if (onDragOver) onDragOver(null);
+        setDragOverIndex(null);
+      };
+
+      const handleColumnDrop = (e) => {
+        e.preventDefault();
+        const contentId = e.dataTransfer.getData('text/plain');
+        const sourceStage = e.dataTransfer.getData('source-stage');
+
+        // If dropping from same stage and we have a position, it's a reorder
+        if (sourceStage === stage.id && dragOverIndex !== null && onReorderContent) {
+          onReorderContent(contentId, dragOverIndex, items);
+        } else if (contentId && onDrop) {
+          // Moving between stages
+          onDrop(contentId, stage.id);
+        }
+        setDragOverIndex(null);
+        setDraggingId(null);
+      };
+
+      const handleCardDragStart = (e, item) => {
+        e.dataTransfer.setData('text/plain', item.id);
+        e.dataTransfer.setData('source-stage', stage.id);
+        setDraggingId(item.id);
+      };
+
+      const handleCardDragEnd = () => {
+        setDraggingId(null);
+        setDragOverIndex(null);
+      };
+
+      const handleCardDragOver = (e, index) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (draggingId) {
+          const draggedIndex = items.findIndex(item => item.id === draggingId);
+          // Only show indicator if dragging to a different position
+          if (draggedIndex !== index && draggedIndex !== index - 1) {
+            setDragOverIndex(index);
+          } else {
+            setDragOverIndex(null);
+          }
+        }
+      };
+
+      return (
+        <div
+          className={`pipeline-column ${isDragOver ? 'drag-over' : ''}`}
+          onDragOver={handleColumnDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleColumnDrop}
+        >
+          <div className="pipeline-column-header">
+            <div className="pipeline-column-dot" style={{ background: stage.color }} />
+            <h3 className="pipeline-column-title">{stage.label}</h3>
+            <span className="pipeline-column-count">{items.length}</span>
+          </div>
+          <div className="pipeline-column-content">
+            {items.map((item, index) => (
+              <React.Fragment key={item.id}>
+                {dragOverIndex === index && <div className="drag-indicator" />}
+                <div
+                  className={`pipeline-card-wrapper ${draggingId === item.id ? 'dragging' : ''}`}
+                  draggable
+                  onDragStart={(e) => handleCardDragStart(e, item)}
+                  onDragEnd={handleCardDragEnd}
+                  onDragOver={(e) => handleCardDragOver(e, index)}
+                >
+                  <ContentCard content={item} onClick={() => onCardClick(item)} draggable={false} />
+                  <div className="pipeline-card-actions">
+                    {canMoveBack(item) && <button className="pipeline-move-btn" onClick={(e) => handleMoveClick(e, item, 'back')} title="Move back"><ChevronLeft /></button>}
+                    {canMoveForward(item) && <button className="pipeline-move-btn forward" onClick={(e) => handleMoveClick(e, item, 'forward')} title="Move forward"><ChevronRight /></button>}
+                  </div>
+                </div>
+              </React.Fragment>
+            ))}
+            {dragOverIndex === items.length && <div className="drag-indicator" />}
+            {items.length === 0 && !isDragOver && <div className="pipeline-empty">No content</div>}
+            {items.length > 0 && (
+              <div
+                className="pipeline-drop-zone"
+                onDragOver={(e) => { e.preventDefault(); setDragOverIndex(items.length); }}
+              />
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    const PipelineBoard = ({ content, onCardClick, onMoveContent, onReorderContent, activeType, onTypeChange }) => {
+      const [dragOverStage, setDragOverStage] = useState(null);
+
+      const getStagesForType = () => {
+        if (activeType === 'long-form') return LONG_FORM_STAGES;
+        if (activeType === 'short-form') return SHORT_FORM_STAGES;
+        return SOCIAL_STAGES;
+      };
+      const stages = getStagesForType();
+
+      const getItemsForStage = (stage) => {
+        return content
+          .filter((item) => item.type === activeType && item.stage === stage.id)
+          .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+      };
+
+      const handleDragOver = (stageId) => {
+        setDragOverStage(stageId);
+      };
+
+      const handleDrop = (contentId, newStageId) => {
+        const item = content.find(c => c.id === contentId);
+        if (!item) return;
+
+        // Validate the stage is valid for this item type
+        const itemStages = item.type === 'long-form' ? LONG_FORM_STAGES : item.type === 'short-form' ? SHORT_FORM_STAGES : SOCIAL_STAGES;
+        if (itemStages.some(s => s.id === newStageId)) {
+          onMoveContent(contentId, newStageId);
+        }
+
+        setDragOverStage(null);
+      };
+
+      const handleDragEnd = () => {
+        setDragOverStage(null);
+      };
+
+      return (
+        <div className="pipeline-board" onDragEnd={handleDragEnd}>
+          <div className="pipeline-header">
+            <div className="pipeline-filters">
+              <button className={`pipeline-filter long ${activeType === 'long-form' ? 'active' : ''}`} onClick={() => onTypeChange('long-form')}>Long-form</button>
+              <button className={`pipeline-filter short ${activeType === 'short-form' ? 'active' : ''}`} onClick={() => onTypeChange('short-form')}>Short-form</button>
+              <button className={`pipeline-filter social ${activeType === 'social' ? 'active' : ''}`} onClick={() => onTypeChange('social')}>Static</button>
+            </div>
+          </div>
+          <div className="pipeline-columns">
+            {stages.map((stage) => (
+              <PipelineColumn
+                key={stage.id}
+                stage={stage}
+                items={getItemsForStage(stage)}
+                onCardClick={onCardClick}
+                onMoveContent={onMoveContent}
+                onReorderContent={onReorderContent}
+                allStages={stages}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                isDragOver={dragOverStage === stage.id}
+              />
+            ))}
+          </div>
+        </div>
+      );
+    };
+
+    const CalendarDay = ({ date, currentMonth, items, onCardClick }) => {
+      const today = isToday(date);
+      const inMonth = isSameMonth(date, currentMonth);
+      const dateStr = date.toISOString().split('T')[0];
+      const shootItems = items.filter((item) => item.shootDate === dateStr && item.type !== 'social');
+      const releaseItems = items.filter((item) => item.releaseDate === dateStr && item.type !== 'social');
+      const socialItems = items.filter((item) => item.releaseDate === dateStr && item.type === 'social');
+
+      return (
+        <div className={`calendar-day ${!inMonth ? 'outside' : ''} ${today ? 'today' : ''}`}>
+          <div className="calendar-day-header">
+            <span className="calendar-day-number">{date.getDate()}</span>
+            {(shootItems.length > 0 || releaseItems.length > 0 || socialItems.length > 0) && (
+              <div className="calendar-day-dots">
+                {shootItems.length > 0 && <span className="calendar-dot shoot" />}
+                {releaseItems.length > 0 && <span className="calendar-dot release" />}
+                {socialItems.length > 0 && <span className="calendar-dot social" />}
+              </div>
+            )}
+          </div>
+          <div className="calendar-day-content">
+            {shootItems.map((item) => (
+              <div key={`shoot-${item.id}`} className="calendar-event shoot" onClick={() => onCardClick(item)}>
+                <span className="calendar-event-label">S:</span>
+                <span className="calendar-event-title">{item.title}</span>
+              </div>
+            ))}
+            {releaseItems.map((item) => (
+              <div key={`release-${item.id}`} className="calendar-event release" onClick={() => onCardClick(item)}>
+                <span className="calendar-event-label">R:</span>
+                <span className="calendar-event-title">{item.title}</span>
+              </div>
+            ))}
+            {socialItems.map((item) => (
+              <div key={`social-${item.id}`} className="calendar-event social" onClick={() => onCardClick(item)}>
+                <span className="calendar-event-label">P:</span>
+                <span className="calendar-event-title">{item.title}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    };
+
+    const MonthView = ({ content, onCardClick, onAddClick }) => {
+      const [currentDate, setCurrentDate] = useState(new Date());
+      const days = getMonthDays(currentDate);
+
+      const goToPrevMonth = () => setCurrentDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1));
+      const goToNextMonth = () => setCurrentDate((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1));
+      const goToToday = () => setCurrentDate(new Date());
+
+      return (
+        <div className="month-view">
+          <div className="month-header">
+            <div className="month-nav">
+              <Button variant="ghost" size="sm" onClick={goToPrevMonth}><ChevronLeft /></Button>
+              <h2 className="month-title">{formatMonthYear(currentDate)}</h2>
+              <Button variant="ghost" size="sm" onClick={goToNextMonth}><ChevronRight /></Button>
+            </div>
+            <div className="month-actions">
+              <Button variant="ghost" size="sm" onClick={goToToday}>Today</Button>
+            </div>
+          </div>
+          <div className="month-legend">
+            <div className="month-legend-item"><span className="month-legend-dot shoot" /><span>Shoot Day</span></div>
+            <div className="month-legend-item"><span className="month-legend-dot release" /><span>Release Day</span></div>
+            <div className="month-legend-item"><span className="month-legend-dot social" /><span>Static Post</span></div>
+          </div>
+          <div className="month-grid">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => <div key={day} className="month-weekday">{day}</div>)}
+            {days.map((day) => <CalendarDay key={day.toISOString()} date={day} currentMonth={currentDate} items={content} onCardClick={onCardClick} />)}
+          </div>
+        </div>
+      );
+    };
+
+    const IdeaCard = ({ idea, onPromote, onDelete, onClick }) => (
+      <div className="idea-card" onClick={() => onClick && onClick(idea)} style={{ cursor: 'pointer' }}>
+        <div className="idea-card-header">
+          <Badge variant={idea.type === 'long-form' ? 'type-long' : idea.type === 'social' ? 'type-social' : 'type-short'}>{idea.type === 'long-form' ? 'Long' : idea.type === 'social' ? 'Static' : 'Short'}</Badge>
+          {idea.createdBy && <span className="idea-card-creator">{getDisplayName(idea.createdBy)}</span>}
+        </div>
+        <h4 className="idea-card-title">{idea.title}</h4>
+        {idea.description && <p className="idea-card-desc">{idea.description}</p>}
+        {idea.assignee && (
+          <div className="idea-card-assignee">
+            <span className="idea-card-assignee-label">Assigned to:</span> {getDisplayName(idea.assignee)}
+          </div>
+        )}
+        {idea.tags?.length > 0 && (
+          <div className="idea-card-tags">
+            {idea.tags.map((tag) => <span key={tag} className="idea-card-tag">{tag}</span>)}
+          </div>
+        )}
+        {idea.platforms?.length > 0 && (
+          <div className="idea-card-platforms">
+            {idea.platforms.map((p) => <span key={p} className={`idea-card-platform ${p}`}>{p === 'linkedin' ? 'in' : p === 'instagram' ? 'IG' : 'X'}</span>)}
+          </div>
+        )}
+        <div className="idea-card-actions">
+          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onDelete(idea.id); }}><TrashIcon /></Button>
+          <Button variant="primary" size="sm" onClick={(e) => { e.stopPropagation(); onPromote(idea.id); }}><ArrowUpIcon /> Start</Button>
+        </div>
+      </div>
+    );
+
+    const IdeasBank = ({ ideas, availableTags = DEFAULT_TAGS, onAddIdea, onPromote, onDelete, onIdeaClick }) => {
+      const [isAdding, setIsAdding] = useState(false);
+      const [newIdea, setNewIdea] = useState({ title: '', description: '', type: 'short-form', tags: [] });
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!newIdea.title.trim()) return;
+        onAddIdea(newIdea);
+        setNewIdea({ title: '', description: '', type: 'short-form', tags: [] });
+        setIsAdding(false);
+      };
+
+      const handleTagToggle = (tag) => {
+        setNewIdea((prev) => ({
+          ...prev,
+          tags: prev.tags.includes(tag) ? prev.tags.filter((t) => t !== tag) : [...prev.tags, tag],
+        }));
+      };
+
+      const longFormIdeas = ideas.filter((i) => i.type === 'long-form');
+      const shortFormIdeas = ideas.filter((i) => i.type === 'short-form');
+      const socialIdeas = ideas.filter((i) => i.type === 'social');
+
+      return (
+        <div className="ideas-bank">
+          <div className="ideas-header">
+            <div>
+              <h2 className="ideas-title">Ideas Bank</h2>
+              <p className="ideas-subtitle">Capture content ideas. Click a card to edit, or click "Start" to move into production.</p>
+            </div>
+            <Button variant="primary" onClick={() => setIsAdding(true)}><PlusIcon /> Add Idea</Button>
+          </div>
+          {isAdding && (
+            <form className="ideas-form" onSubmit={handleSubmit}>
+              <div className="ideas-form-row">
+                <input type="text" value={newIdea.title} onChange={(e) => setNewIdea((prev) => ({ ...prev, title: e.target.value }))} placeholder="What's your idea?" className="ideas-form-input" autoFocus />
+                <div className="ideas-form-type">
+                  <button type="button" className={`ideas-type-btn ${newIdea.type === 'long-form' ? 'active long' : ''}`} onClick={() => setNewIdea((prev) => ({ ...prev, type: 'long-form' }))}>Long</button>
+                  <button type="button" className={`ideas-type-btn ${newIdea.type === 'short-form' ? 'active short' : ''}`} onClick={() => setNewIdea((prev) => ({ ...prev, type: 'short-form' }))}>Short</button>
+                  <button type="button" className={`ideas-type-btn ${newIdea.type === 'social' ? 'active social' : ''}`} onClick={() => setNewIdea((prev) => ({ ...prev, type: 'social' }))}>Static</button>
+                </div>
+              </div>
+              <textarea value={newIdea.description} onChange={(e) => setNewIdea((prev) => ({ ...prev, description: e.target.value }))} placeholder="Brief description (optional)" className="ideas-form-textarea" rows={2} />
+              <div className="ideas-form-tags">
+                {availableTags.map((tag) => (
+                  <button key={tag} type="button" className={`ideas-tag-btn ${newIdea.tags.includes(tag) ? 'active' : ''}`} onClick={() => handleTagToggle(tag)}>{tag}</button>
+                ))}
+              </div>
+              <div className="ideas-form-actions">
+                <Button type="button" variant="ghost" onClick={() => setIsAdding(false)}>Cancel</Button>
+                <Button type="submit" variant="primary">Save Idea</Button>
+              </div>
+            </form>
+          )}
+          <div className="ideas-sections">
+            <div>
+              <h3 className="ideas-section-title"><span className="ideas-section-dot short" />Short-form Ideas<span className="ideas-section-count">{shortFormIdeas.length}</span></h3>
+              <div className="ideas-grid">
+                {shortFormIdeas.map((idea) => <IdeaCard key={idea.id} idea={idea} onPromote={onPromote} onDelete={onDelete} onClick={onIdeaClick} />)}
+                {shortFormIdeas.length === 0 && <div className="ideas-empty">No short-form ideas yet</div>}
+              </div>
+            </div>
+            <div>
+              <h3 className="ideas-section-title"><span className="ideas-section-dot long" />Long-form Ideas<span className="ideas-section-count">{longFormIdeas.length}</span></h3>
+              <div className="ideas-grid">
+                {longFormIdeas.map((idea) => <IdeaCard key={idea.id} idea={idea} onPromote={onPromote} onDelete={onDelete} onClick={onIdeaClick} />)}
+                {longFormIdeas.length === 0 && <div className="ideas-empty">No long-form ideas yet</div>}
+              </div>
+            </div>
+            {socialIdeas.length > 0 && (
+              <div>
+                <h3 className="ideas-section-title"><span className="ideas-section-dot social" />Static Ideas<span className="ideas-section-count">{socialIdeas.length}</span></h3>
+                <div className="ideas-grid">
+                  {socialIdeas.map((idea) => <IdeaCard key={idea.id} idea={idea} onPromote={onPromote} onDelete={onDelete} onClick={onIdeaClick} />)}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    const Sidebar = ({ activeView, onViewChange, contentCounts, onAddContent }) => {
+      const { user, signOut, isAdmin } = useAuth();
+      const navItems = [
+        { id: 'pipeline', label: 'Pipeline', icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="3" width="5" height="14" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="7.5" y="6" width="5" height="11" rx="1" stroke="currentColor" strokeWidth="1.5"/><rect x="13" y="3" width="5" height="14" rx="1" stroke="currentColor" strokeWidth="1.5"/></svg> },
+        { id: 'calendar', label: 'Calendar', icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="13" rx="2" stroke="currentColor" strokeWidth="1.5"/><path d="M2 8h16M6 2v4M14 2v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg> },
+        { id: 'ideas', label: 'Ideas', icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2a6 6 0 014 10.5V14a1 1 0 01-1 1H7a1 1 0 01-1-1v-1.5A6 6 0 0110 2z" stroke="currentColor" strokeWidth="1.5"/><path d="M7 17h6M8 19h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg> },
+        { id: 'archive', label: 'Archive', icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 5h14a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1V6a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.5"/><path d="M4 9v6a2 2 0 002 2h8a2 2 0 002-2V9" stroke="currentColor" strokeWidth="1.5"/><path d="M8 12h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg> },
+      ];
+
+      const handleSignOut = async () => {
+        await signOut();
+      };
+
+      return (
+        <aside className="sidebar">
+          <div className="sidebar-brand">
+            <Logo size={36} showText={true} />
+          </div>
+          <div className="sidebar-add">
+            <button className="sidebar-add-btn" onClick={onAddContent}>
+              <PlusIcon /> Add Content
+            </button>
+          </div>
+          <nav className="sidebar-nav">
+            {navItems.map((item) => (
+              <button key={item.id} className={`sidebar-nav-item ${activeView === item.id ? 'active' : ''}`} onClick={() => onViewChange(item.id)}>
+                <span className="sidebar-nav-icon">{item.icon}</span>
+                <span className="sidebar-nav-label">{item.label}</span>
+                {contentCounts?.[item.id] > 0 && <span className="sidebar-nav-count">{contentCounts[item.id]}</span>}
+              </button>
+            ))}
+            {isAdmin && (
+              <button className={`admin-nav-item ${activeView === 'admin' ? 'active' : ''}`} onClick={() => onViewChange('admin')}>
+                <span className="sidebar-nav-icon">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <circle cx="10" cy="6" r="3" stroke="currentColor" strokeWidth="1.5"/>
+                    <path d="M4 17c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M15 3l1 1-3 3-1-1 3-3z" fill="currentColor"/>
+                  </svg>
+                </span>
+                <span className="sidebar-nav-label">Admin</span>
+              </button>
+            )}
+          </nav>
+          <div className="sidebar-section">
+            <h3 className="sidebar-section-title">Content Types</h3>
+            <div className="sidebar-type-item"><span className="sidebar-type-dot" style={{ background: '#3b82f6' }} /><span>Long-form</span></div>
+            <div className="sidebar-type-item"><span className="sidebar-type-dot" style={{ background: '#f59e0b' }} /><span>Short-form</span></div>
+            <div className="sidebar-type-item"><span className="sidebar-type-dot" style={{ background: '#8b5cf6' }} /><span>Static</span></div>
+          </div>
+          <div className="sidebar-user">
+            <div className="sidebar-user-info">
+              <UserAvatar email={user?.email} size={32} editable={true} />
+              <span className="sidebar-user-email">{user?.email}</span>
+            </div>
+            <div style={{ display: 'flex', gap: 'var(--space-xs)', flexDirection: 'column' }}>
+              <button className="help-btn" onClick={() => onViewChange('help')}>
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                  <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M7.5 7.5a2.5 2.5 0 114 2c-.5.5-1 1-1 1.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  <circle cx="10.5" cy="14" r="0.75" fill="currentColor"/>
+                </svg>
+                Help Guide
+              </button>
+              <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                <LogoutIcon /> Sign Out
+              </Button>
+            </div>
+          </div>
+        </aside>
+      );
+    };
+
+    const Header = ({ onExport, onImport, onViewLog, searchQuery, onSearchChange }) => {
+      const handleImport = () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => onImport(event.target.result);
+            reader.readAsText(file);
+          }
+        };
+        input.click();
+      };
+
+      return (
+        <header className="header">
+          <div className="header-left">
+            <div className="header-logo">
+              <span className="header-title">Content Calendar</span>
+            </div>
+          </div>
+          <div className="header-center">
+            <div className="header-search">
+              <svg className="header-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                type="text"
+                className="header-search-input"
+                placeholder="Search content..."
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+              />
+              {searchQuery && (
+                <button className="header-search-clear" onClick={() => onSearchChange('')}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
+          <div className="header-right">
+            <Button variant="ghost" size="sm" onClick={handleImport}>Import</Button>
+            <Button variant="ghost" size="sm" onClick={onExport}>Export</Button>
+            <Button variant="ghost" size="sm" onClick={onViewLog}>Log</Button>
+          </div>
+        </header>
+      );
+    };
+
+    const MainApp = () => {
+      const [activeView, setActiveView] = useState('pipeline');
+      const [modalOpen, setModalOpen] = useState(false);
+      const [selectedContent, setSelectedContent] = useState(null);
+      const [ideaModalOpen, setIdeaModalOpen] = useState(false);
+      const [selectedIdea, setSelectedIdea] = useState(null);
+      const [pipelineFilter, setPipelineFilter] = useState('long-form'); // Track pipeline filter for default type
+      const [searchQuery, setSearchQuery] = useState('');
+      const [toasts, setToasts] = useState([]);
+
+      const { user } = useAuth();
+      const { markContentRead, markIdeasRead, getUnreadContentCount, getUnreadIdeasCount } = useReadStatus();
+      const { content, ideas, teamMembers, deletedContent, allTags, loading: contentLoading, addContent, updateContent, deleteContent, moveContent, reorderContent, restoreContent, permanentlyDeleteContent, emptyTrash, purgeOldDeletedContent, addIdea, updateIdea, deleteIdea, promoteIdea, unpromoteContent, exportData, importData, addCustomTag } = useContentStore();
+      const { addLog } = useActivityLog();
+
+      // Toast management
+      const showToast = (message, undoAction = null, duration = 5000) => {
+        const id = Date.now();
+        setToasts(prev => [...prev, { id, message, undoAction }]);
+        setTimeout(() => dismissToast(id), duration);
+        return id;
+      };
+
+      const dismissToast = (id) => {
+        setToasts(prev => prev.filter(t => t.id !== id));
+      };
+
+      const handleToastUndo = (id) => {
+        const toast = toasts.find(t => t.id === id);
+        if (toast?.undoAction) {
+          toast.undoAction();
+        }
+        dismissToast(id);
+      };
+
+      // Wrapper for promoteIdea that shows undo toast
+      const handlePromoteIdea = (ideaId) => {
+        const idea = ideas.find(i => i.id === ideaId);
+        const newContent = promoteIdea(ideaId);
+        if (newContent && idea) {
+          addLog('Started idea in pipeline', idea.title, getDisplayName(user?.email));
+          showToast(
+            `"${idea.title}" moved to Pipeline`,
+            () => unpromoteContent(newContent.id)
+          );
+        }
+        return newContent;
+      };
+
+      // Auto-purge deleted content older than 30 days on app load
+      useEffect(() => {
+        purgeOldDeletedContent();
+      }, []);
+
+      // Mark items as read when viewing each section
+      useEffect(() => {
+        if (!user?.email) return;
+
+        if (activeView === 'pipeline' || activeView === 'calendar') {
+          // Mark all current pipeline content as read
+          const contentIds = content.filter(c => c.stage !== 'published').map(c => c.id);
+          if (contentIds.length > 0) {
+            markContentRead(user.email, contentIds);
+          }
+        } else if (activeView === 'ideas') {
+          // Mark all current ideas as read
+          const ideaIds = ideas.map(i => i.id);
+          if (ideaIds.length > 0) {
+            markIdeasRead(user.email, ideaIds);
+          }
+        }
+      }, [activeView, user?.email]);
+
+      // Keyboard shortcut: Press "N" to add new content
+      useEffect(() => {
+        const handleKeyDown = (e) => {
+          // Don't trigger if user is typing in an input or textarea
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+          // Don't trigger if modal is already open
+          if (modalOpen) return;
+          // Don't trigger if modifier keys are held
+          if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+          if (e.key === 'n' || e.key === 'N') {
+            e.preventDefault();
+            setSelectedContent(null);
+            setModalOpen(true);
+          }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+      }, [modalOpen]);
+
+      const handleCardClick = (item) => { setSelectedContent(item); setModalOpen(true); };
+      const handleAddClick = () => {
+        setSelectedContent(null);
+        setModalOpen(true);
+      };
+      const handleSave = async (formData) => {
+        const isNew = !selectedContent?.id;
+        const previousAssignee = selectedContent?.assignee;
+        const newAssignee = formData.assignee;
+        const userName = getDisplayName(user?.email);
+
+        if (isNew) {
+          addContent(formData);
+          addLog('Added new content', formData.title, userName);
+        } else {
+          updateContent(selectedContent.id, formData);
+          addLog('Edited content', formData.title, userName);
+        }
+        setModalOpen(false);
+
+        // Send assignment notification if enabled and assignee is set/changed
+        if (formData.sendNotifications && newAssignee) {
+          const assigneeChanged = isNew || (previousAssignee !== newAssignee);
+          if (assigneeChanged) {
+            sendNotification({
+              type: 'assignment',
+              recipientEmail: newAssignee,
+              recipientName: getDisplayName(newAssignee),
+              contentTitle: formData.title,
+              contentType: formData.type,
+              shootDate: formData.shootDate,
+              releaseDate: formData.releaseDate,
+              assignerName: getDisplayName(user?.email),
+            });
+            showToast(`Notification sent to ${getDisplayName(newAssignee)}`);
+          }
+        }
+      };
+      const handleDelete = (id) => {
+        const item = content.find(c => c.id === id);
+        deleteContent(id);
+        if (item) {
+          addLog('Deleted content', item.title, getDisplayName(user?.email));
+        }
+        setModalOpen(false);
+      };
+      const handleImport = (jsonData) => {
+        if (importData(jsonData)) { alert('Data imported successfully!'); }
+        else { alert('Failed to import data. Please check the file format.'); }
+      };
+
+      // Wrapper for moveContent with logging
+      const handleMoveContent = (contentId, newStage) => {
+        const item = content.find(c => c.id === contentId);
+        moveContent(contentId, newStage);
+        if (item) {
+          const stageName = newStage.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+          addLog(`Moved content to ${stageName}`, item.title, getDisplayName(user?.email));
+        }
+      };
+
+      // Wrapper for addIdea with logging
+      const handleAddIdea = (ideaData) => {
+        addIdea(ideaData);
+        addLog('Added new idea', ideaData.title, getDisplayName(user?.email));
+      };
+
+      // Wrapper for deleteIdea with logging
+      const handleDeleteIdea = (ideaId) => {
+        const idea = ideas.find(i => i.id === ideaId);
+        deleteIdea(ideaId);
+        if (idea) {
+          addLog('Deleted idea', idea.title, getDisplayName(user?.email));
+        }
+      };
+
+      // Idea card click handler - open edit modal
+      const handleIdeaClick = (idea) => {
+        setSelectedIdea(idea);
+        setIdeaModalOpen(true);
+      };
+
+      // Save idea from modal
+      const handleIdeaSave = (formData) => {
+        if (selectedIdea?.id) {
+          updateIdea(selectedIdea.id, formData);
+          addLog('Edited idea', formData.title, getDisplayName(user?.email));
+        }
+        setIdeaModalOpen(false);
+        setSelectedIdea(null);
+      };
+
+      // Delete idea from modal
+      const handleIdeaDeleteFromModal = (id) => {
+        handleDeleteIdea(id);
+        setIdeaModalOpen(false);
+        setSelectedIdea(null);
+      };
+
+      // Wrapper for restoreContent with logging
+      const handleRestoreContent = (contentId) => {
+        const item = deletedContent.find(c => c.id === contentId);
+        restoreContent(contentId);
+        if (item) {
+          addLog('Restored content from trash', item.title, getDisplayName(user?.email));
+        }
+      };
+
+      // Count unread items for notifications
+      const unreadCounts = {
+        pipeline: getUnreadContentCount(user?.email, content),
+        ideas: getUnreadIdeasCount(user?.email, ideas)
+      };
+
+      // Filter content and ideas based on search query
+      const searchLower = searchQuery.toLowerCase().trim();
+      const filteredContent = searchLower
+        ? content.filter(item =>
+            item.title.toLowerCase().includes(searchLower) ||
+            item.description?.toLowerCase().includes(searchLower) ||
+            item.assignee?.toLowerCase().includes(searchLower) ||
+            item.tags?.some(tag => tag.toLowerCase().includes(searchLower))
+          )
+        : content;
+      const filteredIdeas = searchLower
+        ? ideas.filter(item =>
+            item.title.toLowerCase().includes(searchLower) ||
+            item.description?.toLowerCase().includes(searchLower) ||
+            item.tags?.some(tag => tag.toLowerCase().includes(searchLower))
+          )
+        : ideas;
+
+      const renderView = () => {
+        switch (activeView) {
+          case 'pipeline':
+            return <PipelineBoard content={filteredContent} onCardClick={handleCardClick} onMoveContent={handleMoveContent} onReorderContent={reorderContent} activeType={pipelineFilter} onTypeChange={setPipelineFilter} />;
+          case 'calendar':
+            return <MonthView content={filteredContent} onCardClick={handleCardClick} onAddClick={handleAddClick} />;
+          case 'ideas':
+            return <IdeasBank ideas={filteredIdeas} availableTags={allTags} onAddIdea={handleAddIdea} onPromote={handlePromoteIdea} onDelete={handleDeleteIdea} onIdeaClick={handleIdeaClick} />;
+          case 'archive':
+            return <ArchiveView content={filteredContent} onCardClick={handleCardClick} />;
+          case 'admin':
+            return <AdminPortal deletedContent={deletedContent} onRestore={handleRestoreContent} onPermanentDelete={permanentlyDeleteContent} onEmptyTrash={emptyTrash} />;
+          case 'help':
+            return <HelpGuide onClose={() => setActiveView('pipeline')} />;
+          case 'log':
+            return <ActivityLog onClose={() => setActiveView('pipeline')} />;
+          default:
+            return null;
+        }
+      };
+
+      // Show loading state while fetching data
+      if (contentLoading) {
+        return (
+          <div className="app">
+            <Sidebar activeView={activeView} onViewChange={setActiveView} contentCounts={{ pipeline: 0, ideas: 0 }} onAddContent={handleAddClick} />
+            <Header onExport={exportData} onImport={handleImport} onViewLog={() => setActiveView('log')} searchQuery="" onSearchChange={() => {}} />
+            <main className="main-content">
+              <div className="page-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 120px)' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <span className="loading-spinner" style={{ width: 40, height: 40, marginBottom: 16 }} />
+                  <p style={{ color: 'var(--text-secondary)' }}>Loading content...</p>
+                </div>
+              </div>
+            </main>
+          </div>
+        );
+      }
+
+      return (
+        <div className="app">
+          <Sidebar activeView={activeView} onViewChange={setActiveView} contentCounts={unreadCounts} onAddContent={handleAddClick} />
+          <Header onExport={exportData} onImport={handleImport} onViewLog={() => setActiveView('log')} searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+          <main className="main-content">
+            <div className="page-content">{renderView()}</div>
+          </main>
+          <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={selectedContent?.id ? 'Edit Content' : 'New Content'}>
+            <ContentForm content={selectedContent} teamMembers={teamMembers} availableTags={allTags} onAddTag={addCustomTag} onSave={handleSave} onDelete={handleDelete} onClose={() => setModalOpen(false)} defaultType={activeView === 'pipeline' && pipelineFilter !== 'all' ? pipelineFilter : null} />
+          </Modal>
+          <Modal isOpen={ideaModalOpen} onClose={() => { setIdeaModalOpen(false); setSelectedIdea(null); }} title="Edit Idea">
+            {selectedIdea && <IdeaForm idea={selectedIdea} teamMembers={teamMembers} availableTags={allTags} onAddTag={addCustomTag} onSave={handleIdeaSave} onDelete={handleIdeaDeleteFromModal} onClose={() => { setIdeaModalOpen(false); setSelectedIdea(null); }} />}
+          </Modal>
+          <ToastContainer toasts={toasts} onDismiss={dismissToast} onUndo={handleToastUndo} />
+        </div>
+      );
+    };
+
+    const App = () => {
+      const { user, loading } = useAuth();
+
+      if (loading) {
+        return (
+          <div className="loading-page">
+            <span className="loading-spinner" style={{ width: 40, height: 40 }} />
+            <p>Loading...</p>
+          </div>
+        );
+      }
+
+      return user ? <MainApp /> : <AuthPage />;
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(
+      <ActivityLogProvider>
+        <ProfilePicsProvider>
+          <ReadStatusProvider>
+            <AuthProvider>
+              <App />
+            </AuthProvider>
+          </ReadStatusProvider>
+        </ProfilePicsProvider>
+      </ActivityLogProvider>
+    );
+  </script>
+</body>
+</html>

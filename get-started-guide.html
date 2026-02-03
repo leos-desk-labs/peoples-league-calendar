@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Content Calendar - Get Started Guide</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #0d1117; color: #f0f6fc; line-height: 1.6; }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 48px 24px; }
+
+    /* Header */
+    .header { text-align: center; margin-bottom: 48px; }
+    .logo { display: inline-flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .logo-icon { width: 48px; height: 48px; background: #183539; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+    .logo-icon svg { width: 32px; height: 32px; }
+    .logo-text { font-size: 28px; font-weight: 800; color: #e7ff01; letter-spacing: -0.5px; }
+    .header h1 { font-size: 36px; font-weight: 700; margin-bottom: 8px; }
+    .header p { font-size: 18px; color: #8b949e; }
+
+    /* URL Box */
+    .url-box { background: #161b22; border: 2px solid #e7ff01; border-radius: 12px; padding: 20px 24px; text-align: center; margin-bottom: 48px; }
+    .url-label { font-size: 12px; font-weight: 600; color: #8b949e; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+    .url-link { font-size: 20px; font-weight: 600; color: #e7ff01; text-decoration: none; }
+    .url-link:hover { text-decoration: underline; }
+
+    /* Section */
+    .section { margin-bottom: 48px; }
+    .section-title { font-size: 14px; font-weight: 700; color: #e7ff01; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .section-title::before { content: ''; width: 4px; height: 20px; background: #e7ff01; border-radius: 2px; }
+
+    /* Cards Grid */
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+    .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 24px; }
+    .card-icon { width: 48px; height: 48px; background: #21262d; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; font-size: 24px; }
+    .card h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .card p { font-size: 14px; color: #8b949e; }
+
+    /* Steps */
+    .steps { display: flex; flex-direction: column; gap: 16px; }
+    .step { display: flex; gap: 16px; align-items: flex-start; background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 20px; }
+    .step-number { width: 32px; height: 32px; background: #e7ff01; color: #183539; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+    .step-content h4 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+    .step-content p { font-size: 14px; color: #8b949e; }
+
+    /* Pipeline Visual */
+    .pipeline-visual { display: flex; gap: 8px; overflow-x: auto; padding: 8px 0; }
+    .pipeline-stage { flex: 0 0 auto; background: #21262d; border-radius: 8px; padding: 12px 16px; text-align: center; min-width: 100px; }
+    .pipeline-stage-dot { width: 10px; height: 10px; border-radius: 50%; margin: 0 auto 8px; }
+    .pipeline-stage-name { font-size: 11px; font-weight: 600; color: #8b949e; }
+    .pipeline-arrow { display: flex; align-items: center; color: #30363d; font-size: 20px; }
+
+    /* Shortcuts */
+    .shortcuts { display: flex; gap: 24px; flex-wrap: wrap; }
+    .shortcut { display: flex; align-items: center; gap: 12px; }
+    .shortcut-key { background: #21262d; border: 1px solid #30363d; border-radius: 6px; padding: 6px 12px; font-size: 14px; font-weight: 600; font-family: monospace; }
+    .shortcut-desc { font-size: 14px; color: #8b949e; }
+
+    /* Tips */
+    .tips { background: linear-gradient(135deg, #183539 0%, #0d1117 100%); border: 1px solid #264747; border-radius: 12px; padding: 24px; }
+    .tips h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .tips ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .tips li { font-size: 14px; color: #8b949e; padding-left: 24px; position: relative; }
+    .tips li::before { content: '→'; position: absolute; left: 0; color: #e7ff01; }
+
+    /* Footer */
+    .footer { text-align: center; padding-top: 48px; border-top: 1px solid #21262d; margin-top: 48px; }
+    .footer p { font-size: 14px; color: #6e7681; }
+
+    @media print {
+      body { background: white; color: #1a1a1a; }
+      .card, .step, .url-box, .tips, .pipeline-stage { border-color: #ddd; background: #f9f9f9; }
+      .card p, .step-content p, .tips li, .shortcut-desc { color: #666; }
+      .section-title, .logo-text, .url-link { color: #183539; }
+      .section-title::before, .step-number { background: #183539; }
+      .step-number { color: white; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="logo">
+        <img src="https://peoplesleaguegolf.com/wp-content/uploads/2024/08/PL-_-PRIMARY-LOGO-.png" alt="Peoples League" style="height: 60px; width: auto;">
+      </div>
+      <h1>Content Calendar</h1>
+      <p>Get Started Guide</p>
+    </header>
+
+    <div class="url-box">
+      <div class="url-label">Your Calendar</div>
+      <a href="https://peoples-league-calendar.vercel.app" class="url-link">peoples-league-calendar.vercel.app</a>
+    </div>
+
+    <section class="section">
+      <div class="section-title">Three Views, One Workflow</div>
+      <div class="cards">
+        <div class="card">
+          <div class="card-icon">📋</div>
+          <h3>Pipeline</h3>
+          <p>Your main workspace. Drag cards through stages as content progresses from shoot to publish.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📅</div>
+          <h3>Calendar</h3>
+          <p>See what's shooting and releasing by date. Great for spotting conflicts and planning ahead.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">💡</div>
+          <h3>Ideas</h3>
+          <p>Capture ideas before they're ready. Click "Start" to move one into production.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">How Content Flows</div>
+      <div class="pipeline-visual">
+        <div class="pipeline-stage">
+          <div class="pipeline-stage-dot" style="background: #3b82f6;"></div>
+          <div class="pipeline-stage-name">Shoot<br>Scheduled</div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-stage">
+          <div class="pipeline-stage-dot" style="background: #f59e0b;"></div>
+          <div class="pipeline-stage-name">In<br>Production</div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-stage">
+          <div class="pipeline-stage-dot" style="background: #ec4899;"></div>
+          <div class="pipeline-stage-name">Editing</div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-stage">
+          <div class="pipeline-stage-dot" style="background: #06b6d4;"></div>
+          <div class="pipeline-stage-name">Review</div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-stage">
+          <div class="pipeline-stage-dot" style="background: #10b981;"></div>
+          <div class="pipeline-stage-name">Scheduled</div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-stage">
+          <div class="pipeline-stage-dot" style="background: #e7ff01;"></div>
+          <div class="pipeline-stage-name">Published</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">Getting Started</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h4>Log in with your email</h4>
+            <p>Enter your email and check your inbox for a 6-digit code. No password needed.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h4>Add your first content</h4>
+            <p>Click the yellow "Add Content" button or press N. Fill in the title, type, dates, and assignee.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h4>Move cards as work progresses</h4>
+            <p>Drag cards between columns or use the arrow buttons that appear on hover.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">Keyboard Shortcuts</div>
+      <div class="shortcuts">
+        <div class="shortcut">
+          <span class="shortcut-key">N</span>
+          <span class="shortcut-desc">New content</span>
+        </div>
+        <div class="shortcut">
+          <span class="shortcut-key">Esc</span>
+          <span class="shortcut-desc">Close modal</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="tips">
+        <h3>💡 Pro Tips</h3>
+        <ul>
+          <li>Use filters (All / Long-form / Short-form) to focus on what matters</li>
+          <li>Release dates show in pink so you can spot deadlines fast</li>
+          <li>Calendar shows "S" for shoot days and "R" for release days</li>
+          <li>Made a mistake? Watch for the Undo button (5 second window)</li>
+          <li>Uncheck "Send notifications" when batch-adding to avoid email spam</li>
+        </ul>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>Questions? Reach out to Clay.</p>
+    </footer>
+  </div>
+</body>
+</html>
