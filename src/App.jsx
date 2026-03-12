@@ -224,10 +224,6 @@ function App() {
     )
   }
 
-  if (!session) {
-    return <LoginPage />
-  }
-
   return <AppContent />
 }
 
