@@ -10,11 +10,17 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Timeout: if getSession hangs (e.g. cross-origin iframe blocking storage), resolve anyway
+    const timeout = setTimeout(() => setLoading(false), 2000)
     supabase.auth.getSession().then(({ data: { session } }) => {
+      clearTimeout(timeout)
       setSession(session)
       if (session?.user) {
         loadUser(session.user)
       }
+      setLoading(false)
+    }).catch(() => {
+      clearTimeout(timeout)
       setLoading(false)
     })
 
