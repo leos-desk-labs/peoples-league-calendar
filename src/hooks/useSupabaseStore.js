@@ -71,7 +71,6 @@ export function useSupabaseStore(user, displayName) {
   }, [])
 
   useEffect(() => {
-    if (!user) return
     loadData()
 
     // Realtime subscriptions
