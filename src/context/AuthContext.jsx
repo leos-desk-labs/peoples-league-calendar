@@ -66,10 +66,19 @@ export function AuthProvider({ children }) {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: window.location.origin,
+        shouldCreateUser: true,
       },
     })
     return { error }
+  }
+
+  const verifyOtp = async (email, token) => {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'email',
+    })
+    return { data, error }
   }
 
   const signOut = async () => {
@@ -86,7 +95,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ session, user, displayName, loading, signIn, signOut, updateDisplayName }}>
+    <AuthContext.Provider value={{ session, user, displayName, loading, signIn, signOut, verifyOtp, updateDisplayName }}>
       {children}
     </AuthContext.Provider>
   )

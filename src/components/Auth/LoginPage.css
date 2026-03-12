@@ -142,12 +142,47 @@
   font-size: var(--font-size-sm) !important;
 }
 
+.login-code-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.login-code-info {
+  font-size: var(--font-size-md);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-sm);
+}
+
+.login-code-info strong {
+  color: var(--text-primary);
+}
+
+.login-code-input {
+  text-align: center;
+  font-size: 28px !important;
+  letter-spacing: 12px;
+  font-weight: 700;
+  padding: var(--space-md) !important;
+}
+
+.login-code-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-lg);
+}
+
 .login-back-btn {
-  margin-top: var(--space-md);
+  margin-top: var(--space-sm);
   color: var(--pl-lime);
   font-size: var(--font-size-sm);
   cursor: pointer;
   background: none;
   border: none;
   text-decoration: underline;
+}
+
+.login-back-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
