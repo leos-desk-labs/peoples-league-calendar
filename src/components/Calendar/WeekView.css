@@ -1,0 +1,119 @@
+.week-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.week-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.week-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.week-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 180px;
+  text-align: center;
+}
+
+.week-actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--space-sm);
+}
+
+.week-day {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-default);
+}
+
+.week-day.today {
+  border-color: var(--pl-lime);
+}
+
+.week-day-header {
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--border-default);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.week-day-name {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.week-day-number {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.week-day-number.today {
+  background: var(--pl-lime);
+  color: var(--pl-teal);
+}
+
+.week-day-content {
+  flex: 1;
+  padding: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  overflow-y: auto;
+}
+
+.week-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.week-section-title {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.week-section-title.shoot {
+  color: var(--type-long);
+}
+
+.week-section-title.release {
+  color: var(--pl-lime);
+}
+
+.week-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}

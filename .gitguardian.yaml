@@ -1,0 +1,6 @@
+# Supabase anon key is intentionally public (client-side, protected by RLS)
+# This is not a secret leak - it's by design per Supabase docs
+secret:
+  ignored-paths:
+    - "standalone.html"
+    - "deploy/index.html"
