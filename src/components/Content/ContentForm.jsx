@@ -1,30 +1,18 @@
 import { useState, useEffect } from 'react'
 import { Button } from '../shared/Button'
-import { LONG_FORM_STAGES, SHORT_FORM_STAGES, STATIC_POST_STAGES, CONTENT_TAGS } from '../../data/initialData'
+import { LONG_FORM_STAGES, SHORT_FORM_STAGES, STATIC_POST_STAGES, TAG_GROUPS, getStagesForType } from '../../data/initialData'
 import './ContentForm.css'
 
 const EMPTY_FORM = {
   title: '',
   description: '',
   type: 'short-form',
-  stage: 'idea',
+  stage: 'sf-idea',
   shootDate: '',
   releaseDate: '',
   assignee: '',
   tags: [],
   notes: '',
-}
-
-function getStagesForType(type) {
-  if (type === 'long-form') return LONG_FORM_STAGES
-  if (type === 'short-form') return SHORT_FORM_STAGES
-  if (type === 'static') return STATIC_POST_STAGES
-  return SHORT_FORM_STAGES
-}
-
-function getDefaultStage(type) {
-  const stages = getStagesForType(type)
-  return stages[0]?.id || 'idea'
 }
 
 export function ContentForm({ content, team, onSave, onDelete, onClose }) {
@@ -37,13 +25,15 @@ export function ContentForm({ content, team, onSave, onDelete, onClose }) {
         title: content.title || '',
         description: content.description || '',
         type: content.type || 'short-form',
-        stage: content.stage || 'idea',
+        stage: content.stage || 'sf-idea',
         shootDate: content.shootDate || '',
         releaseDate: content.releaseDate || '',
         assignee: content.assignee || '',
         tags: content.tags || [],
         notes: content.notes || '',
       })
+    } else {
+      setFormData(EMPTY_FORM)
     }
   }, [content])
 
@@ -55,10 +45,11 @@ export function ContentForm({ content, team, onSave, onDelete, onClose }) {
   }
 
   const handleTypeChange = (type) => {
+    const firstStage = getStagesForType(type)[0].id
     setFormData((prev) => ({
       ...prev,
       type,
-      stage: getDefaultStage(type),
+      stage: firstStage,
     }))
   }
 
@@ -74,7 +65,7 @@ export function ContentForm({ content, team, onSave, onDelete, onClose }) {
   const handleSubmit = (e) => {
     e.preventDefault()
     if (!formData.title.trim()) return
-    onSave(formData)
+    onSave(content?.id || null, formData)
   }
 
   return (
@@ -124,8 +115,8 @@ export function ContentForm({ content, team, onSave, onDelete, onClose }) {
             </button>
             <button
               type="button"
-              className={`form-type-btn ${formData.type === 'static' ? 'active static' : ''}`}
-              onClick={() => handleTypeChange('static')}
+              className={`form-type-btn ${formData.type === 'static-post' ? 'active static' : ''}`}
+              onClick={() => handleTypeChange('static-post')}
             >
               Static Post
             </button>
@@ -173,35 +164,58 @@ export function ContentForm({ content, team, onSave, onDelete, onClose }) {
         </div>
       </div>
 
-      <div className="form-group">
-        <label className="form-label">Assignee</label>
-        <select
-          name="assignee"
-          value={formData.assignee}
-          onChange={handleChange}
-          className="form-select"
-        >
-          <option value="">Unassigned</option>
-          {team.map((member) => (
-            <option key={member} value={member}>
-              {member}
-            </option>
-          ))}
-        </select>
-      </div>
+      {team.length > 0 && (
+        <div className="form-group">
+          <label className="form-label">Assignee</label>
+          <select
+            name="assignee"
+            value={formData.assignee}
+            onChange={handleChange}
+            className="form-select"
+          >
+            <option value="">Unassigned</option>
+            {team.map((member) => (
+              <option key={member} value={member}>
+                {member}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {team.length === 0 && (
+        <div className="form-group">
+          <label className="form-label">Assignee</label>
+          <input
+            type="text"
+            name="assignee"
+            value={formData.assignee}
+            onChange={handleChange}
+            className="form-input"
+            placeholder="Enter assignee name..."
+          />
+        </div>
+      )}
 
       <div className="form-group">
         <label className="form-label">Tags</label>
-        <div className="form-tags">
-          {CONTENT_TAGS.map((tag) => (
-            <button
-              key={tag}
-              type="button"
-              className={`form-tag ${formData.tags.includes(tag) ? 'active' : ''}`}
-              onClick={() => handleTagToggle(tag)}
-            >
-              {tag}
-            </button>
+        <div className="form-tags-grouped">
+          {TAG_GROUPS.map((group) => (
+            <div key={group.label} className="form-tag-group">
+              <span className="form-tag-group-label">{group.label}</span>
+              <div className="form-tags">
+                {group.tags.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    className={`form-tag ${formData.tags.includes(tag) ? 'active' : ''}`}
+                    onClick={() => handleTagToggle(tag)}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -217,6 +231,15 @@ export function ContentForm({ content, team, onSave, onDelete, onClose }) {
           rows={3}
         />
       </div>
+
+      {isEditing && content?.createdBy && (
+        <div className="form-meta">
+          <span>Created by <strong>{content.createdBy}</strong></span>
+          {content.updatedBy && content.updatedBy !== content.createdBy && (
+            <span> · Last edited by <strong>{content.updatedBy}</strong></span>
+          )}
+        </div>
+      )}
 
       <div className="form-actions">
         {isEditing && (

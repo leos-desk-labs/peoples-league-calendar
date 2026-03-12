@@ -32,7 +32,6 @@ export function IdeasBank({ ideas, onAddIdea, onPromote, onDelete }) {
 
   const longFormIdeas = ideas.filter((i) => i.type === 'long-form')
   const shortFormIdeas = ideas.filter((i) => i.type === 'short-form')
-  const staticIdeas = ideas.filter((i) => i.type === 'static')
 
   return (
     <div className="ideas-bank">
@@ -81,13 +80,6 @@ export function IdeasBank({ ideas, onAddIdea, onPromote, onDelete }) {
                 onClick={() => setNewIdea((prev) => ({ ...prev, type: 'short-form' }))}
               >
                 Short
-              </button>
-              <button
-                type="button"
-                className={`ideas-type-btn ${newIdea.type === 'static' ? 'active static' : ''}`}
-                onClick={() => setNewIdea((prev) => ({ ...prev, type: 'static' }))}
-              >
-                Static
               </button>
             </div>
           </div>
@@ -160,27 +152,6 @@ export function IdeasBank({ ideas, onAddIdea, onPromote, onDelete }) {
             ))}
             {longFormIdeas.length === 0 && (
               <div className="ideas-empty">No long-form ideas yet</div>
-            )}
-          </div>
-        </div>
-
-        <div className="ideas-section">
-          <h3 className="ideas-section-title">
-            <span className="ideas-section-dot static" />
-            Static Post Ideas
-            <span className="ideas-section-count">{staticIdeas.length}</span>
-          </h3>
-          <div className="ideas-grid">
-            {staticIdeas.map((idea) => (
-              <IdeaCard
-                key={idea.id}
-                idea={idea}
-                onPromote={onPromote}
-                onDelete={onDelete}
-              />
-            ))}
-            {staticIdeas.length === 0 && (
-              <div className="ideas-empty">No static post ideas yet</div>
             )}
           </div>
         </div>

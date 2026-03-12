@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Sidebar } from './components/Layout/Sidebar'
 import { Header } from './components/Layout/Header'
 import { PipelineBoard } from './components/Pipeline/PipelineBoard'
@@ -6,57 +6,21 @@ import { MonthView } from './components/Calendar/MonthView'
 import { WeekView } from './components/Calendar/WeekView'
 import { IdeasBank } from './components/Ideas/IdeasBank'
 import { ContentModal } from './components/Content/ContentModal'
-import { AccessGate } from './components/Auth/AccessGate'
-import { TeamPicker } from './components/Auth/TeamPicker'
-import { PresenceIndicator } from './components/Presence/PresenceIndicator'
+import { LoginPage } from './components/Auth/LoginPage'
+import { useAuth } from './context/AuthContext'
 import { useSupabaseStore } from './hooks/useSupabaseStore'
-import { usePresence } from './hooks/usePresence'
 
-const ACCESS_GRANTED_KEY = 'pl-cal-access'
-const CURRENT_USER_KEY = 'pl-cal-user'
-
-function App() {
+function AppContent() {
+  const { user, displayName, signOut } = useAuth()
   const [activeView, setActiveView] = useState('pipeline')
   const [calendarView, setCalendarView] = useState('month')
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedContent, setSelectedContent] = useState(null)
 
-  // Auth state
-  const [hasAccess, setHasAccess] = useState(
-    () => localStorage.getItem(ACCESS_GRANTED_KEY) === 'true'
-  )
-  const [currentUser, setCurrentUser] = useState(
-    () => localStorage.getItem(CURRENT_USER_KEY) || null
-  )
-  const [showTeamPicker, setShowTeamPicker] = useState(false)
-
-  // Show team picker after access granted if no user set
-  useEffect(() => {
-    if (hasAccess && !currentUser) {
-      setShowTeamPicker(true)
-    }
-  }, [hasAccess, currentUser])
-
-  const handleAccess = () => {
-    localStorage.setItem(ACCESS_GRANTED_KEY, 'true')
-    setHasAccess(true)
-    if (!currentUser) {
-      setShowTeamPicker(true)
-    }
-  }
-
-  const handleSelectUser = (name) => {
-    localStorage.setItem(CURRENT_USER_KEY, name)
-    setCurrentUser(name)
-    setShowTeamPicker(false)
-  }
-
   const {
     content,
     ideas,
-    team,
     loading,
-    recentActivity,
     addContent,
     updateContent,
     deleteContent,
@@ -65,14 +29,7 @@ function App() {
     deleteIdea,
     promoteIdea,
     exportData,
-    importData,
-  } = useSupabaseStore(currentUser)
-
-  const { presentUsers } = usePresence(hasAccess ? currentUser : null)
-
-  if (!hasAccess) {
-    return <AccessGate onAccess={handleAccess} />
-  }
+  } = useSupabaseStore(user, displayName)
 
   const handleCardClick = (item) => {
     setSelectedContent(item)
@@ -85,31 +42,34 @@ function App() {
   }
 
   const handleSave = async (id, data) => {
-    try {
-      if (id) {
-        await updateContent(id, data)
-      } else {
-        await addContent(data)
-      }
-    } catch (e) {
-      console.error('Save error:', e)
+    if (id) {
+      await updateContent(id, data)
+    } else {
+      await addContent(data)
     }
+    setModalOpen(false)
   }
 
-  const handleImport = async (jsonData) => {
-    if (await importData(jsonData)) {
-      alert('Data imported successfully!')
-    } else {
-      alert('Failed to import data. Please check the file format.')
-    }
+  const handleDelete = async (id) => {
+    await deleteContent(id)
+    setModalOpen(false)
   }
 
   const contentCounts = {
-    pipeline: content.filter((c) => c.stage !== 'published').length,
+    pipeline: content.filter((c) => c.stage !== 'published' && c.stage !== 'sf-published' && c.stage !== 'sp-published').length,
     ideas: ideas.length,
   }
 
   const renderView = () => {
+    if (loading) {
+      return (
+        <div className="loading-state">
+          <div className="loading-spinner" />
+          <span>Loading...</span>
+        </div>
+      )
+    }
+
     switch (activeView) {
       case 'pipeline':
         return (
@@ -142,6 +102,7 @@ function App() {
                 content={content}
                 onCardClick={handleCardClick}
                 onAddClick={handleAddClick}
+                onMoveContent={moveContent}
               />
             ) : (
               <WeekView
@@ -168,41 +129,28 @@ function App() {
 
   return (
     <div className="app">
-      {showTeamPicker && <TeamPicker onSelect={handleSelectUser} />}
       <Sidebar
         activeView={activeView}
         onViewChange={setActiveView}
         contentCounts={contentCounts}
+        displayName={displayName}
+        userEmail={user?.email}
+        onSignOut={signOut}
       />
       <Header
         onExport={exportData}
-        onImport={handleImport}
-        currentUser={currentUser}
-        onChangeUser={() => setShowTeamPicker(true)}
-        presenceSlot={
-          <PresenceIndicator
-            presentUsers={presentUsers}
-            currentUser={currentUser}
-            recentActivity={recentActivity}
-          />
-        }
+        displayName={displayName}
+        onSignOut={signOut}
       />
       <main className="main-content">
-        {loading ? (
-          <div className="loading-state">
-            <div className="loading-spinner" />
-            <span>Loading...</span>
-          </div>
-        ) : (
-          <div className="page-content">{renderView()}</div>
-        )}
+        <div className="page-content">{renderView()}</div>
       </main>
       <ContentModal
         isOpen={modalOpen}
         content={selectedContent}
-        team={team}
+        team={[]}
         onSave={handleSave}
-        onDelete={deleteContent}
+        onDelete={handleDelete}
         onClose={() => setModalOpen(false)}
       />
       <style>{`
@@ -236,18 +184,17 @@ function App() {
         }
         .loading-state {
           display: flex;
-          flex-direction: column;
           align-items: center;
           justify-content: center;
           gap: var(--space-md);
-          height: 300px;
+          padding: var(--space-2xl);
           color: var(--text-secondary);
         }
         .loading-spinner {
-          width: 32px;
-          height: 32px;
-          border: 3px solid var(--border-color);
-          border-top-color: var(--accent-primary);
+          width: 20px;
+          height: 20px;
+          border: 2px solid var(--border-default);
+          border-top-color: var(--pl-lime);
           border-radius: 50%;
           animation: spin 0.8s linear infinite;
         }
@@ -257,6 +204,31 @@ function App() {
       `}</style>
     </div>
   )
+}
+
+function App() {
+  const { session, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#0d1117',
+        color: '#f0f6fc',
+      }}>
+        Loading...
+      </div>
+    )
+  }
+
+  if (!session) {
+    return <LoginPage />
+  }
+
+  return <AppContent />
 }
 
 export default App

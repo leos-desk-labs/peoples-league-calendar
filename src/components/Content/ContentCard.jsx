@@ -1,42 +1,39 @@
 import { Badge } from '../shared/Badge'
 import { formatShortDate } from '../../utils/dates'
-import { LONG_FORM_STAGES, SHORT_FORM_STAGES, STATIC_POST_STAGES } from '../../data/initialData'
+import { getStagesForType } from '../../data/initialData'
 import './ContentCard.css'
 
-function getStagesForType(type) {
-  if (type === 'long-form') return LONG_FORM_STAGES
-  if (type === 'short-form') return SHORT_FORM_STAGES
-  if (type === 'static') return STATIC_POST_STAGES
-  return SHORT_FORM_STAGES
-}
-
-function getTypeLabel(type) {
-  if (type === 'long-form') return 'Long'
-  if (type === 'short-form') return 'Short'
-  if (type === 'static') return 'Static'
-  return type
+function UserAvatar({ name }) {
+  if (!name) return null
+  const initials = name.charAt(0).toUpperCase()
+  return (
+    <span className="content-card-avatar" title={name}>
+      {initials}
+    </span>
+  )
 }
 
 function getTypeBadge(type) {
-  if (type === 'long-form') return 'type-long'
-  if (type === 'short-form') return 'type-short'
-  if (type === 'static') return 'type-static'
-  return 'type-short'
+  if (type === 'long-form') return { variant: 'type-long', label: 'Long' }
+  if (type === 'short-form') return { variant: 'type-short', label: 'Short' }
+  if (type === 'static-post') return { variant: 'type-static', label: 'Static' }
+  return { variant: 'type-short', label: type }
 }
 
-export function ContentCard({ content, onClick, compact = false }) {
+export function ContentCard({ content, onClick, compact = false, draggable = false, onDragStart }) {
   const stages = getStagesForType(content.type)
   const currentStage = stages.find((s) => s.id === content.stage)
+  const { variant, label } = getTypeBadge(content.type)
 
   return (
     <div
       className={`content-card ${compact ? 'content-card-compact' : ''}`}
       onClick={onClick}
+      draggable={draggable}
+      onDragStart={onDragStart}
     >
       <div className="content-card-header">
-        <Badge variant={getTypeBadge(content.type)}>
-          {getTypeLabel(content.type)}
-        </Badge>
+        <Badge variant={variant}>{label}</Badge>
         {content.assignee && (
           <span className="content-card-assignee">{content.assignee}</span>
         )}
@@ -89,9 +86,20 @@ export function ContentCard({ content, onClick, compact = false }) {
         )}
       </div>
 
-      {content.updatedBy && !compact && (
-        <div className="content-card-meta">
-          <span className="content-card-editor">Edited by {content.updatedBy}</span>
+      {(content.createdBy || content.updatedBy) && (
+        <div className="content-card-users">
+          {content.createdBy && (
+            <span className="content-card-user-info" title={`Created by ${content.createdBy}`}>
+              <UserAvatar name={content.createdBy} />
+              <span className="content-card-user-label">{content.createdBy}</span>
+            </span>
+          )}
+          {content.updatedBy && content.updatedBy !== content.createdBy && (
+            <span className="content-card-user-info updated" title={`Edited by ${content.updatedBy}`}>
+              <UserAvatar name={content.updatedBy} />
+              <span className="content-card-user-label">{content.updatedBy}</span>
+            </span>
+          )}
         </div>
       )}
 

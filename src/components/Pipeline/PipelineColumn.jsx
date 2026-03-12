@@ -1,7 +1,10 @@
 import { ContentCard } from '../Content/ContentCard'
 import './PipelineColumn.css'
 
-export function PipelineColumn({ stage, items, onCardClick, onMoveContent, allStages }) {
+export function PipelineColumn({
+  stage, items, onCardClick, onMoveContent, allStages,
+  isDragOver, onDragOver, onDrop, onDragLeave
+}) {
   const handleMoveClick = (e, item, direction) => {
     e.stopPropagation()
     const currentIndex = allStages.findIndex((s) => s.id === item.stage)
@@ -11,8 +14,18 @@ export function PipelineColumn({ stage, items, onCardClick, onMoveContent, allSt
     }
   }
 
+  const handleDragStart = (e, item) => {
+    e.dataTransfer.setData('text/plain', item.id)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
   return (
-    <div className="pipeline-column">
+    <div
+      className={`pipeline-column ${isDragOver ? 'pipeline-column-drag-over' : ''}`}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      onDragLeave={onDragLeave}
+    >
       <div className="pipeline-column-header">
         <div
           className="pipeline-column-dot"
@@ -29,7 +42,12 @@ export function PipelineColumn({ stage, items, onCardClick, onMoveContent, allSt
 
           return (
             <div key={item.id} className="pipeline-card-wrapper">
-              <ContentCard content={item} onClick={() => onCardClick(item)} />
+              <ContentCard
+                content={item}
+                onClick={() => onCardClick(item)}
+                draggable={true}
+                onDragStart={(e) => handleDragStart(e, item)}
+              />
               <div className="pipeline-card-actions">
                 {canMoveBack && (
                   <button
@@ -70,7 +88,9 @@ export function PipelineColumn({ stage, items, onCardClick, onMoveContent, allSt
           )
         })}
         {items.length === 0 && (
-          <div className="pipeline-empty">No content</div>
+          <div className={`pipeline-empty ${isDragOver ? 'pipeline-empty-hover' : ''}`}>
+            Drop here
+          </div>
         )}
       </div>
     </div>

@@ -48,11 +48,6 @@
   color: var(--type-short);
 }
 
-.pipeline-filter.static.active {
-  background: rgba(168, 85, 247, 0.15);
-  color: #a855f7;
-}
-
 .pipeline-columns {
   display: flex;
   gap: var(--space-md);
@@ -60,4 +55,10 @@
   padding-bottom: var(--space-md);
   flex: 1;
   min-height: 0;
+}
+
+.pipeline-filter.static.active {
+  background: rgba(139, 92, 246, 0.15);
+  color: #8b5cf6;
+  border-color: #8b5cf6;
 }

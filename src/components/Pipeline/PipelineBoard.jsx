@@ -1,46 +1,43 @@
 import { useState } from 'react'
 import { Button } from '../shared/Button'
 import { PipelineColumn } from './PipelineColumn'
-import { LONG_FORM_STAGES, SHORT_FORM_STAGES, STATIC_POST_STAGES } from '../../data/initialData'
+import { LONG_FORM_STAGES, SHORT_FORM_STAGES, STATIC_POST_STAGES, getStagesForType } from '../../data/initialData'
 import './PipelineBoard.css'
 
-function getStagesForType(type) {
-  if (type === 'long-form') return LONG_FORM_STAGES
-  if (type === 'short-form') return SHORT_FORM_STAGES
-  if (type === 'static') return STATIC_POST_STAGES
-  return LONG_FORM_STAGES
-}
-
 export function PipelineBoard({ content, onCardClick, onMoveContent, onAddClick }) {
-  const [activeType, setActiveType] = useState('all')
+  const [activeType, setActiveType] = useState('long-form')
+  const [dragOverColumn, setDragOverColumn] = useState(null)
 
-  const stages = activeType === 'all' ? LONG_FORM_STAGES :
-                 getStagesForType(activeType)
+  const stages = getStagesForType(activeType)
 
-  const filteredContent = activeType === 'all'
-    ? content
-    : content.filter((item) => item.type === activeType)
+  const filteredContent = content.filter((item) => item.type === activeType)
 
   const getItemsForStage = (stageId) => {
-    if (activeType === 'all') {
-      return content.filter((item) => {
-        const itemStages = getStagesForType(item.type)
-        return itemStages.some((s) => s.id === stageId) && item.stage === stageId
-      })
-    }
     return filteredContent.filter((item) => item.stage === stageId)
+  }
+
+  const handleDragOver = (e, stageId) => {
+    e.preventDefault()
+    setDragOverColumn(stageId)
+  }
+
+  const handleDrop = (e, stageId) => {
+    e.preventDefault()
+    setDragOverColumn(null)
+    const itemId = e.dataTransfer.getData('text/plain')
+    if (itemId) {
+      onMoveContent(itemId, stageId)
+    }
+  }
+
+  const handleDragLeave = () => {
+    setDragOverColumn(null)
   }
 
   return (
     <div className="pipeline-board">
       <div className="pipeline-header">
         <div className="pipeline-filters">
-          <button
-            className={`pipeline-filter ${activeType === 'all' ? 'active' : ''}`}
-            onClick={() => setActiveType('all')}
-          >
-            All Content
-          </button>
           <button
             className={`pipeline-filter long ${activeType === 'long-form' ? 'active' : ''}`}
             onClick={() => setActiveType('long-form')}
@@ -54,8 +51,8 @@ export function PipelineBoard({ content, onCardClick, onMoveContent, onAddClick 
             Short-form
           </button>
           <button
-            className={`pipeline-filter static ${activeType === 'static' ? 'active' : ''}`}
-            onClick={() => setActiveType('static')}
+            className={`pipeline-filter static ${activeType === 'static-post' ? 'active' : ''}`}
+            onClick={() => setActiveType('static-post')}
           >
             Static Posts
           </button>
@@ -82,6 +79,10 @@ export function PipelineBoard({ content, onCardClick, onMoveContent, onAddClick 
             onCardClick={onCardClick}
             onMoveContent={onMoveContent}
             allStages={stages}
+            isDragOver={dragOverColumn === stage.id}
+            onDragOver={(e) => handleDragOver(e, stage.id)}
+            onDrop={(e) => handleDrop(e, stage.id)}
+            onDragLeave={handleDragLeave}
           />
         ))}
       </div>

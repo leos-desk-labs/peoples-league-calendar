@@ -78,12 +78,6 @@
   color: var(--type-long);
 }
 
-.ideas-type-btn.active.static {
-  background: rgba(168, 85, 247, 0.1);
-  border-color: var(--type-static);
-  color: var(--type-static);
-}
-
 .ideas-type-btn.active.short {
   background: rgba(245, 158, 11, 0.15);
   border-color: var(--type-short);
@@ -166,10 +160,6 @@
 
 .ideas-section-dot.long {
   background: var(--type-long);
-}
-
-.ideas-section-dot.static {
-  background: var(--type-static);
 }
 
 .ideas-section-count {

@@ -38,11 +38,13 @@ const NAV_ITEMS = [
   },
 ]
 
-export function Sidebar({ activeView, onViewChange, contentCounts }) {
+export function Sidebar({ activeView, onViewChange, contentCounts, displayName, userEmail, onSignOut }) {
+  const initials = displayName ? displayName.charAt(0).toUpperCase() : '?'
+
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <img src="/logo.svg" alt="" width="40" height="40" />
+        <img src="/pl-logo.png" alt="Peoples League" className="sidebar-pl-logo" />
         <div className="sidebar-brand-text">
           <span className="sidebar-brand-name">Peoples League</span>
           <span className="sidebar-brand-tagline">Content Calendar</span>
@@ -76,8 +78,27 @@ export function Sidebar({ activeView, onViewChange, contentCounts }) {
             <span className="sidebar-type-dot" style={{ background: 'var(--type-short)' }} />
             <span>Short-form</span>
           </div>
+          <div className="sidebar-type-item">
+            <span className="sidebar-type-dot" style={{ background: '#8b5cf6' }} />
+            <span>Static Posts</span>
+          </div>
         </div>
       </div>
+
+      {displayName && (
+        <div className="sidebar-user">
+          <div className="sidebar-user-avatar">{initials}</div>
+          <div className="sidebar-user-info">
+            <span className="sidebar-user-name">{displayName}</span>
+            <span className="sidebar-user-email">{userEmail}</span>
+          </div>
+          <button className="sidebar-signout" onClick={onSignOut} title="Sign out">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M6 14H3a1 1 0 01-1-1V3a1 1 0 011-1h3M10 11l3-3-3-3M13 8H6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </div>
+      )}
     </aside>
   )
 }

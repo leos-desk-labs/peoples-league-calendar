@@ -37,6 +37,6 @@
 }
 
 .badge-type-static {
-  background: rgba(168, 85, 247, 0.15);
-  color: var(--type-static);
+  background: rgba(139, 92, 246, 0.15);
+  color: #8b5cf6;
 }

@@ -96,3 +96,13 @@
   color: var(--text-muted);
   font-size: var(--font-size-sm);
 }
+
+.pipeline-column-drag-over {
+  border: 1px dashed var(--pl-lime) !important;
+  background: var(--pl-lime-muted) !important;
+}
+
+.pipeline-empty-hover {
+  color: var(--pl-lime) !important;
+  border-color: var(--pl-lime) !important;
+}
