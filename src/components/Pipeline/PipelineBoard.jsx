@@ -37,6 +37,17 @@ export function PipelineBoard({ content, onCardClick, onMoveContent, onAddClick 
   return (
     <div className="pipeline-board">
       <div className="pipeline-header">
+        <Button variant="primary" onClick={onAddClick}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path
+              d="M8 3v10M3 8h10"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+          Add Content
+        </Button>
         <div className="pipeline-filters">
           <button
             className={`pipeline-filter long ${activeType === 'long-form' ? 'active' : ''}`}
@@ -57,17 +68,6 @@ export function PipelineBoard({ content, onCardClick, onMoveContent, onAddClick 
             Static Posts
           </button>
         </div>
-        <Button variant="primary" onClick={onAddClick}>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path
-              d="M8 3v10M3 8h10"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-          Add Content
-        </Button>
       </div>
 
       <div className="pipeline-columns">

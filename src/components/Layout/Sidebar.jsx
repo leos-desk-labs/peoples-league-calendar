@@ -44,7 +44,6 @@ export function Sidebar({ activeView, onViewChange, contentCounts, displayName, 
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <img src="/pl-logo.png" alt="Peoples League" className="sidebar-pl-logo" />
         <div className="sidebar-brand-text">
           <span className="sidebar-brand-name">Peoples League</span>
           <span className="sidebar-brand-tagline">Content Calendar</span>

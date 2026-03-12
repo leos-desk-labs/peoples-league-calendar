@@ -6,7 +6,6 @@ export function Header({ onExport, displayName, onSignOut }) {
     <header className="header">
       <div className="header-left">
         <div className="header-logo">
-          <img src="/pl-logo.png" alt="Peoples League" width="32" height="32" style={{ borderRadius: '50%' }} />
           <span className="header-title">Content Calendar</span>
         </div>
       </div>
