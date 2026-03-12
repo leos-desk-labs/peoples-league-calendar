@@ -61,12 +61,16 @@ export function useSupabaseStore(user, displayName) {
 
   // Load initial data
   const loadData = useCallback(async () => {
-    const [{ data: contentData }, { data: ideasData }] = await Promise.all([
-      supabase.from('content_items').select('*').order('created_at', { ascending: false }),
-      supabase.from('ideas').select('*').order('created_at', { ascending: false }).catch(() => ({ data: [] })),
-    ])
-    if (contentData) setContent(contentData.map(rowToItem))
-    if (ideasData) setIdeas(ideasData.map(rowToIdea))
+    try {
+      const [{ data: contentData }, { data: ideasData }] = await Promise.all([
+        supabase.from('content_items').select('*').order('created_at', { ascending: false }),
+        supabase.from('ideas').select('*').order('created_at', { ascending: false }),
+      ])
+      if (contentData) setContent(contentData.map(rowToItem))
+      if (ideasData) setIdeas(ideasData.map(rowToIdea))
+    } catch (err) {
+      console.error('Failed to load data:', err)
+    }
     setLoading(false)
   }, [])
 
