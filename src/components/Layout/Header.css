@@ -42,3 +42,19 @@
   color: var(--text-secondary);
   padding: var(--space-xs) var(--space-sm);
 }
+
+/* ── Mobile Header ── */
+@media (max-width: 768px) {
+  .header {
+    left: 0;
+    padding: 0 var(--space-md);
+  }
+
+  .header-user {
+    display: none;
+  }
+
+  .header-title {
+    font-size: var(--font-size-md);
+  }
+}

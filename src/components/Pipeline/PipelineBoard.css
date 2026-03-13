@@ -62,3 +62,30 @@
   color: #8b5cf6;
   border-color: #8b5cf6;
 }
+
+/* ── Mobile Pipeline ── */
+@media (max-width: 768px) {
+  .pipeline-board {
+    height: auto;
+  }
+
+  .pipeline-columns {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    gap: var(--space-sm);
+    padding-bottom: var(--space-lg);
+  }
+
+  .pipeline-header {
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+  }
+
+  .pipeline-filters {
+    overflow-x: auto;
+    flex-shrink: 0;
+    max-width: 100%;
+  }
+}

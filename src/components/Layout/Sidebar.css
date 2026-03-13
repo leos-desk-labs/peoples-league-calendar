@@ -191,3 +191,66 @@
 .sidebar-signout:hover {
   color: var(--text-primary);
 }
+
+/* ── Mobile: Bottom Tab Bar ── */
+@media (max-width: 768px) {
+  .sidebar {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    border-right: none;
+    border-top: 1px solid var(--border-default);
+    z-index: 300;
+  }
+
+  .sidebar-brand,
+  .sidebar-section,
+  .sidebar-user {
+    display: none;
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 0;
+    gap: 0;
+    flex: 1;
+  }
+
+  .sidebar-nav-item {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 12px 10px;
+    border-radius: 0;
+    flex: 1;
+    position: relative;
+  }
+
+  .sidebar-nav-item.active {
+    background: transparent;
+    border-top: 2px solid var(--pl-lime);
+  }
+
+  .sidebar-nav-label {
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .sidebar-nav-count {
+    position: absolute;
+    top: 6px;
+    right: calc(50% - 22px);
+    font-size: 9px;
+    padding: 1px 4px;
+    min-width: 16px;
+    text-align: center;
+  }
+}

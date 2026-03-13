@@ -83,6 +83,18 @@ a {
   padding: var(--space-lg);
 }
 
+/* ── Mobile Layout ── */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding-bottom: 65px; /* bottom tab bar height */
+  }
+
+  .page-content {
+    padding: var(--space-md);
+  }
+}
+
 /* Utility Classes */
 .sr-only {
   position: absolute;
